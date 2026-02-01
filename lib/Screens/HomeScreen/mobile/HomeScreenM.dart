@@ -28,8 +28,18 @@ class _HomeScreenMState extends State<HomeScreenM> {
         builder: (context, state) {
           return Scaffold(
             appBar: AppBar(
+              leading: IconButton(
+                  onPressed: (){}, 
+                  icon: Icon(Icons.menu,color: white,size: SizeConfig.titleText,)
+              ),
+              actions: [
+                IconButton(
+                    onPressed: (){},
+                    icon: Icon(Icons.logout,color: white,size: SizeConfig.titleText,)
+                ),
+              ],
               backgroundColor: primaryColor,
-              title: CustomText(text: "Atlanwa BMS",color: white,size: SizeConfig.subText,),),
+              title: CustomText(text: "Atlanwa BMS",color: white,size: SizeConfig.medtitleText,weight: FontWeight.bold,),),
           );
         },
       ),

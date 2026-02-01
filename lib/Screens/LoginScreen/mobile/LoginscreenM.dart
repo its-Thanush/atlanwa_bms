@@ -48,29 +48,35 @@ class _LoginscreenMState extends State<LoginscreenM>  with TickerProviderStateMi
     String username = _usernameController.text.trim();
     String password = _passwordController.text.trim();
 
-    if (username.isEmpty || password.isEmpty) {
-      setState(() {
-        _loginError = 'Please enter username and password';
-      });
-      return;
-    }
+    Future.delayed( Duration(seconds: 1), () {
+      if (mounted) {
+        context.go('/home');
+      }
+    });
 
-    if (username == 'Atlanwa' && password == '123456') {
-      setState(() {
-        _isLoggingIn = true;
-      });
-
-      Future.delayed( Duration(seconds: 1), () {
-        if (mounted) {
-          context.go('/home');
-        }
-      });
-
-    } else {
-      setState(() {
-        _loginError = 'Invalid username or password';
-      });
-    }
+    // if (username.isEmpty || password.isEmpty) {
+    //   setState(() {
+    //     _loginError = 'Please enter username and password';
+    //   });
+    //   return;
+    // }
+    //
+    // if (username == 'Atlanwa' && password == '123456') {
+    //   setState(() {
+    //     _isLoggingIn = true;
+    //   });
+    //
+    //   Future.delayed( Duration(seconds: 1), () {
+    //     if (mounted) {
+    //       context.go('/home');
+    //     }
+    //   });
+    //
+    // } else {
+    //   setState(() {
+    //     _loginError = 'Invalid username or password';
+    //   });
+    // }
   }
 
   @override

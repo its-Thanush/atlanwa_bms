@@ -1,5 +1,5 @@
 import 'package:atlanwa_bms/allImports.dart';
-
+import 'package:gap/gap.dart';
 
 class HomeScreenM extends StatefulWidget {
   const HomeScreenM({super.key});
@@ -10,40 +10,452 @@ class HomeScreenM extends StatefulWidget {
 
 class _HomeScreenMState extends State<HomeScreenM> {
   late HomeScreenBloc bloc;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final List<BMSModuleItem> bmsModules = [
+    BMSModuleItem(
+      title: 'Lift Status',
+      icon: Icons.elevator,
+      color: liftStatusPrimary,
+      lightColor: liftStatusLight,
+      description: 'Monitor elevator operations',
+      route: 'lift_status',
+    ),
+    BMSModuleItem(
+      title: 'Operating Log',
+      icon: Icons.history,
+      color: operatingLogPrimary,
+      lightColor: operatingLogLight,
+      description: 'View system operations log',
+      route: 'operating_log',
+    ),
+    BMSModuleItem(
+      title: 'HT/LT Panel',
+      icon: Icons.settings_input_component,
+      color: htltPanelPrimary,
+      lightColor: htltPanelLight,
+      description: 'High/Low tension panels',
+      route: 'ht_lt_panel',
+    ),
+    BMSModuleItem(
+      title: 'STP Automation',
+      icon: Icons.water_drop,
+      color: stpAutomationPrimary,
+      lightColor: stpAutomationLight,
+      description: 'Sewage treatment plant',
+      route: 'stp_automation',
+    ),
+    BMSModuleItem(
+      title: 'Parking Slots',
+      icon: Icons.local_parking,
+      color: parkingSlotsPrimary,
+      lightColor: parkingSlotsLight,
+      description: 'Check slot availability',
+      route: 'parking_slots',
+    ),
+  ];
 
   @override
   void initState() {
     bloc = BlocProvider.of<HomeScreenBloc>(context);
-    // TODO: implement initState
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
     return BlocListener<HomeScreenBloc, HomeScreenState>(
       listener: (context, state) {
-        // TODO: implement listener
+        // Handle bloc state changes here
       },
       child: BlocBuilder<HomeScreenBloc, HomeScreenState>(
         builder: (context, state) {
           return Scaffold(
-            appBar: AppBar(
-              leading: IconButton(
-                  onPressed: (){}, 
-                  icon: Icon(Icons.menu,color: white,size: SizeConfig.titleText,)
-              ),
-              actions: [
-                IconButton(
-                    onPressed: (){},
-                    icon: Icon(Icons.logout,color: white,size: SizeConfig.titleText,)
-                ),
-              ],
-              backgroundColor: primaryColor,
-              title: CustomText(text: "Atlanwa BMS",color: white,size: SizeConfig.medtitleText,weight: FontWeight.bold,),),
+            key: _scaffoldKey,
+            appBar: _buildAppBar(),
+            drawer: _buildDrawer(),
+            backgroundColor: Background,
+            body: _buildBody(),
           );
         },
       ),
     );
   }
 
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      elevation: 0,
+      backgroundColor: primaryColor,
+      leading: IconButton(
+        onPressed: () {
+          _scaffoldKey.currentState!.openDrawer();
+        },
+        icon: Icon(Icons.menu, color: white),
+        splashRadius: 24,
+      ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CustomText(
+            text: 'Atlanwa BMS',
+            color: white,
+            size: SizeConfig.titleText,
+            weight: FontWeight.w700,
+            letterSpacing: 0.5,
+          ),
+          CustomText(
+            text: 'Building Management System',
+            color: white.withOpacity(0.7),
+            size: SizeConfig.tinyText,
+            weight: FontWeight.w400,
+            letterSpacing: 0.3,
+          ),
+        ],
+      ),
+      actions: [
+        Container(
+          margin: EdgeInsets.only(right: 8),
+          child: Center(
+            child: IconButton(
+              onPressed: () {},
+              icon: Icon(Icons.power_settings_new, color: white),
+              tooltip: 'Logout',
+              splashRadius: 24,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      backgroundColor: white,
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [primaryColor, primaryColor1],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            padding: EdgeInsets.only(top: 40, bottom: 20, left: 20, right: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.domain, color: white, size: 32),
+                ),
+                Gap(SizeConfig.smalltinyText!),
+                CustomText(
+                  text: 'Prestige Polygon',
+                  color: white,
+                  size: SizeConfig.medtitleText,
+                  weight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+                Gap(4),
+                CustomText(
+                  text: 'Admin Access',
+                  color: white.withOpacity(0.7),
+                  size: SizeConfig.smalltinyText,
+                  weight: FontWeight.w400,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Column(
+              children: [
+                _drawerTile(
+                  icon: Icons.dashboard_rounded,
+                  title: 'Dashboard',
+                  onTap: () => Navigator.pop(context),
+                ),
+                _drawerTile(
+                  icon: Icons.settings,
+                  title: 'Settings',
+                  onTap: () {},
+                ),
+                _drawerTile(
+                  icon: Icons.info,
+                  title: 'About',
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ),
+          Spacer(),
+          Padding(
+            padding: EdgeInsets.all(12),
+            child: _drawerTile(
+              icon: Icons.logout,
+              title: 'Logout',
+              onTap: () {},
+              isLogout: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _drawerTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool isLogout = false,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isLogout ? statusError : primaryColor,
+        size: 22,
+      ),
+      title: CustomText(
+        text: title,
+        color: isLogout ? statusError : primaryColor1,
+        size: SizeConfig.smallSubText,
+        weight: FontWeight.w600,
+        letterSpacing: 0.2,
+      ),
+      onTap: onTap,
+      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      hoverColor: GreyColourAsh.withOpacity(0.1),
+    );
+  }
+
+  Widget _buildBody() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildWelcomeSection(),
+            Gap(32),
+            _buildModulesGrid(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeSection() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [primaryColor, primaryColor1,primaryColor2],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(0.15),
+            blurRadius: 24,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            text: 'Welcome User',
+            color: white.withOpacity(0.8),
+            size: SizeConfig.smallSubText,
+            weight: FontWeight.w500,
+            letterSpacing: 0.5,
+          ),
+          Gap(5),
+          CustomText(
+            text: 'Manage Your Building Systems',
+            color: white,
+            size: SizeConfig.bigText,
+            weight: FontWeight.w700,
+          ),
+          Gap(5),
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: white,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Gap(12),
+              Expanded(
+                child: CustomText(
+                  text: 'Monitor and control all your building management modules in one unified interface',
+                  color: white,
+                  size: SizeConfig.smallSubText,
+                  weight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModulesGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.95,
+      ),
+      itemCount: bmsModules.length,
+      itemBuilder: (context, index) {
+        return _buildModuleCard(bmsModules[index]);
+      },
+    );
+  }
+
+  Widget _buildModuleCard(BMSModuleItem module) {
+    return GestureDetector(
+      onTap: () {
+        _navigateToModule(module.route);
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            color: cardBackground,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: module.color.withOpacity(0.08),
+                blurRadius: 20,
+                offset: Offset(0, 4),
+              ),
+            ],
+            border: Border.all(
+              color: module.color.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _navigateToModule(module.route),
+              borderRadius: BorderRadius.circular(16),
+              splashColor: module.color.withOpacity(0.1),
+              highlightColor: module.color.withOpacity(0.05),
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                  children: [
+                    Gap(15),
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: module.lightColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        module.icon,
+                        color: module.color,
+                        size: 28,
+                      ),
+                    ),
+                    Gap(15),
+                    Column(
+                      children: [
+                        CustomText(
+                          text: module.title,
+                          textAlign: TextAlign.center,
+                          color: TextColourBlk,
+                          size: SizeConfig.subText,
+                          weight: FontWeight.bold,
+                        ),
+                        Gap(8),
+                        CustomText(
+                          text: module.description,
+                          textAlign: TextAlign.center,
+                          color: TextColourAsh.withOpacity(0.6),
+                          size: SizeConfig.tinyText,
+                          weight: FontWeight.w400,
+                          textOverflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToModule(String route) {
+    final routeMap = {
+      'lift_status': 'lift',
+      'operating_log': 'operating_log',
+      'ht_lt_panel': 'ht_lt_panel',
+      'stp_automation': 'stp_automation',
+      'parking_slots': 'parking_slots',
+    };
+
+    final namedRoute = routeMap[route];
+
+    if (namedRoute != null) {
+      context.goNamed(namedRoute);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: CustomText(
+            text: 'Route not found: $route',
+            color: white,
+            size: SizeConfig.smallSubText,
+          ),
+          duration: Duration(milliseconds: 800),
+          backgroundColor: statusError,
+        ),
+      );
+    }
+  }
+
+}
+
+class BMSModuleItem {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final Color lightColor;
+  final String description;
+  final String route;
+
+  BMSModuleItem({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.lightColor,
+    required this.description,
+    required this.route,
+  });
 }

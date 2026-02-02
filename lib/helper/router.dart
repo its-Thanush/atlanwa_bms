@@ -1,5 +1,8 @@
 import 'package:atlanwa_bms/allImports.dart';
 
+import '../Screens/LiftScreen/LiftScreen.dart';
+import '../Screens/LiftScreen/bloc/lift_screen_bloc.dart';
+
 
 
 
@@ -37,6 +40,16 @@ class AppRoutes{
             child:  HomeScreen(),
           )
       ),
+      GoRoute(
+          name: 'lift',
+          path: '/lift',
+          builder: (context, state) => BlocProvider(
+            lazy: false,
+            create: (_) => LiftScreenBloc(),
+            child:  LiftScreen(),
+          )
+      ),
+
 
     ],
       errorPageBuilder: (context, state) => MaterialPage(

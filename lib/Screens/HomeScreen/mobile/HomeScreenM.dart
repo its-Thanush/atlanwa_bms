@@ -53,6 +53,22 @@ class _HomeScreenMState extends State<HomeScreenM> {
       description: 'Check slot availability',
       route: 'parking_slots',
     ),
+    BMSModuleItem(
+      title: 'Safety Check',
+      icon: Icons.verified_user,
+      color: safetyCheckPrimary,
+      lightColor: safetyCheckLight,
+      description: 'Safety compliance monitoring',
+      route: 'safety_check',
+    ),
+    BMSModuleItem(
+      title: 'Guard Touring',
+      icon: Icons.security,
+      color: guardTouringPrimary,
+      lightColor: guardTouringLight,
+      description: 'Security patrol tracking',
+      route: 'guard_touring',
+    ),
   ];
 
   @override
@@ -66,7 +82,6 @@ class _HomeScreenMState extends State<HomeScreenM> {
     SizeConfig().init(context);
     return BlocListener<HomeScreenBloc, HomeScreenState>(
       listener: (context, state) {
-        // Handle bloc state changes here
       },
       child: BlocBuilder<HomeScreenBloc, HomeScreenState>(
         builder: (context, state) {
@@ -119,7 +134,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
           child: Center(
             child: IconButton(
               onPressed: () {},
-              icon: Icon(Icons.power_settings_new, color: white),
+              icon: Icon(Icons.logout, color: white),
               tooltip: 'Logout',
               splashRadius: 24,
             ),
@@ -419,6 +434,8 @@ class _HomeScreenMState extends State<HomeScreenM> {
       'ht_lt_panel': 'ht_lt_panel',
       'stp_automation': 'stp_automation',
       'parking_slots': 'parking_slots',
+      'guard_touring':'touring',
+      'safety_check':'safety'
     };
 
     final namedRoute = routeMap[route];

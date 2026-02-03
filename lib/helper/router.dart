@@ -1,7 +1,10 @@
 import 'package:atlanwa_bms/allImports.dart';
-
+import '../Screens/GaurdTouringScreen/GaurdTouring.dart';
+import '../Screens/GaurdTouringScreen/bloc/gaurd_touring_bloc.dart';
 import '../Screens/LiftScreen/LiftScreen.dart';
 import '../Screens/LiftScreen/bloc/lift_screen_bloc.dart';
+import '../Screens/SafetyCheckScreen/SafetyCheckScreen.dart';
+import '../Screens/SafetyCheckScreen/bloc/safety_check_bloc.dart';
 
 
 
@@ -49,6 +52,25 @@ class AppRoutes{
             child:  LiftScreen(),
           )
       ),
+      GoRoute(
+          name: 'safety',
+          path: '/safety',
+          builder: (context, state) => BlocProvider(
+            lazy: false,
+            create: (_) => SafetyCheckBloc(),
+            child:  Safetycheckscreen(),
+          )
+      ),
+      GoRoute(
+          name: 'touring',
+          path: '/touring',
+          builder: (context, state) => BlocProvider(
+            lazy: false,
+            create: (_) => GaurdTouringBloc(),
+            child:  Gaurdtouring(),
+          )
+      ),
+
 
 
     ],

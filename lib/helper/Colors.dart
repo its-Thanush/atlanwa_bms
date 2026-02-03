@@ -87,3 +87,12 @@ const Color surfaceDark = const Color(0xFFF5F6F7);
 const Color borderColor = const Color(0xFFE5E7EB);
 const Color dividerColor = const Color(0xFFD1D5DB);
 const Color shadowColor = const Color(0xFF000000);
+
+const Color safetyCheckPrimary = const Color(0xFFD32F2F);
+const Color safetyCheckLight = const Color(0xFFFFEBEE);
+
+// ============================================
+// BMS MODULE COLORS - GUARD TOURING
+// ============================================
+const Color guardTouringPrimary = const Color(0xFF424242);
+const Color guardTouringLight = const Color(0xFFF5F5F5);

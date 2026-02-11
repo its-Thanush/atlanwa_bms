@@ -48,35 +48,29 @@ class _LoginscreenMState extends State<LoginscreenM>  with TickerProviderStateMi
     String username = _usernameController.text.trim();
     String password = _passwordController.text.trim();
 
-    Future.delayed( Duration(seconds: 1), () {
-      if (mounted) {
-        context.go('/home');
-      }
-    });
+    if (username.isEmpty || password.isEmpty) {
+      setState(() {
+        _loginError = 'Please enter username and password';
+      });
+      return;
+    }
 
-    // if (username.isEmpty || password.isEmpty) {
-    //   setState(() {
-    //     _loginError = 'Please enter username and password';
-    //   });
-    //   return;
-    // }
-    //
-    // if (username == 'Atlanwa' && password == '123456') {
-    //   setState(() {
-    //     _isLoggingIn = true;
-    //   });
-    //
-    //   Future.delayed( Duration(seconds: 1), () {
-    //     if (mounted) {
-    //       context.go('/home');
-    //     }
-    //   });
-    //
-    // } else {
-    //   setState(() {
-    //     _loginError = 'Invalid username or password';
-    //   });
-    // }
+    if (username == 'Atlanwa' && password == '123456') {
+      setState(() {
+        _isLoggingIn = true;
+      });
+
+      Future.delayed( Duration(seconds: 1), () {
+        if (mounted) {
+          context.go('/home');
+        }
+      });
+
+    } else {
+      setState(() {
+        _loginError = 'Invalid username or password';
+      });
+    }
   }
 
   @override
@@ -85,6 +79,18 @@ class _LoginscreenMState extends State<LoginscreenM>  with TickerProviderStateMi
     return BlocListener<LoginScreenBloc, LoginScreenState>(
       listener: (context, state) {
         // TODO: implement listener
+
+        if(state is LoginSuccessState){
+          print("Login success");
+
+          Future.delayed( Duration(seconds: 1), () {
+            if (mounted) {
+              context.go('/home');
+            }
+          });
+
+        }
+
       },
       child: BlocBuilder<LoginScreenBloc, LoginScreenState>(
         builder: (context, state) {
@@ -238,7 +244,10 @@ class _LoginscreenMState extends State<LoginscreenM>  with TickerProviderStateMi
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _isLoggingIn ? null : _validateAndLogin,
+                            onPressed: ()
+                              {
+                                bloc.add(LoginSubmitEvent(_usernameController.text,_passwordController.text));
+                              },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryColor,
                               disabledBackgroundColor: Colors.grey[400],

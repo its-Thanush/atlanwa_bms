@@ -40,7 +40,7 @@ class AppRoutes{
           builder: (context, state) => BlocProvider(
             lazy: false,
             create: (_) => HomeScreenBloc(),
-            child:  HomeScreen(),
+            child: HomeScreen(extra: state.extra as Map<String, dynamic>?),
           )
       ),
       GoRoute(

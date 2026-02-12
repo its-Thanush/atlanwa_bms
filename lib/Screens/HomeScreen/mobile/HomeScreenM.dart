@@ -2,7 +2,9 @@ import 'package:atlanwa_bms/allImports.dart';
 import 'package:gap/gap.dart';
 
 class HomeScreenM extends StatefulWidget {
-  const HomeScreenM({super.key});
+  final Map<String, dynamic>? extra;
+
+  const HomeScreenM({super.key, this.extra});
 
   @override
   State<HomeScreenM> createState() => _HomeScreenMState();
@@ -11,6 +13,8 @@ class HomeScreenM extends StatefulWidget {
 class _HomeScreenMState extends State<HomeScreenM> {
   late HomeScreenBloc bloc;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String? userName;
+  List<String>? buildings;
 
   final List<BMSModuleItem> bmsModules = [
     BMSModuleItem(
@@ -71,10 +75,21 @@ class _HomeScreenMState extends State<HomeScreenM> {
     ),
   ];
 
+
   @override
   void initState() {
     bloc = BlocProvider.of<HomeScreenBloc>(context);
+    _loadUserData();
+
     super.initState();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('userName');
+      buildings = prefs.getStringList('buildings') ?? [];
+    });
   }
 
   @override
@@ -128,24 +143,25 @@ class _HomeScreenMState extends State<HomeScreenM> {
           ),
         ],
       ),
-      actions: [
-        Container(
-          margin: EdgeInsets.only(right: 8),
-          child: Center(
-            child: IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.logout, color: white),
-              tooltip: 'Logout',
-              splashRadius: 24,
-            ),
-          ),
-        ),
-      ],
+      // actions: [
+      //   Container(
+      //     margin: EdgeInsets.only(right: 8),
+      //     child: Center(
+      //       child: IconButton(
+      //         onPressed: () {},
+      //         icon: Icon(Icons.logout, color: white),
+      //         tooltip: 'Logout',
+      //         splashRadius: 24,
+      //       ),
+      //     ),
+      //   ),
+      // ],
     );
   }
 
   Widget _buildDrawer() {
     return Drawer(
+      width: 280,
       backgroundColor: white,
       child: Column(
         children: [
@@ -157,6 +173,13 @@ class _HomeScreenMState extends State<HomeScreenM> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withOpacity(0.15),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
             padding: EdgeInsets.only(top: 40, bottom: 20, left: 20, right: 20),
             child: Column(
@@ -173,7 +196,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
                 ),
                 Gap(SizeConfig.smalltinyText!),
                 CustomText(
-                  text: 'Prestige Polygon',
+                  text: '${userName ?? 'User'}',
                   color: white,
                   size: SizeConfig.medtitleText,
                   weight: FontWeight.w700,
@@ -189,35 +212,105 @@ class _HomeScreenMState extends State<HomeScreenM> {
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            child: Column(
-              children: [
-                _drawerTile(
-                  icon: Icons.dashboard_rounded,
-                  title: 'Dashboard',
-                  onTap: () => Navigator.pop(context),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (buildings?.isNotEmpty == true) ...[
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        child: CustomText(
+                          text: 'YOUR BUILDINGS',
+                          color: primaryColor,
+                          size: SizeConfig.smalltinyText,
+                          weight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      Gap(8),
+                      ...buildings!.map((building) => Container(
+                        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: primaryColor.withOpacity(0.1),
+                            width: 1,
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => Navigator.pop(context),
+                            borderRadius: BorderRadius.circular(10),
+                            splashColor: primaryColor.withOpacity(0.1),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: primaryColor.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.apartment_rounded,
+                                      color: primaryColor,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  Gap(12),
+                                  Expanded(
+                                    child: CustomText(
+                                      text: building,
+                                      color: TextColourBlk,
+                                      size: SizeConfig.smallSubText,
+                                      weight: FontWeight.w600,
+                                      maxLines: 2,
+                                      textOverflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    color: primaryColor.withOpacity(0.4),
+                                    size: 14,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      )).toList(),
+                      Gap(SizeConfig.commonMargin! * 2),
+                    ],
+                  ],
                 ),
-                _drawerTile(
-                  icon: Icons.settings,
-                  title: 'Settings',
-                  onTap: () {},
-                ),
-                _drawerTile(
-                  icon: Icons.info,
-                  title: 'About',
-                  onTap: () {},
-                ),
-              ],
+              ),
             ),
           ),
-          Spacer(),
-          Padding(
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: GreyColourAsh.withOpacity(0.1), width: 1),
+              ),
+            ),
             padding: EdgeInsets.all(12),
             child: _drawerTile(
-              icon: Icons.logout,
+              icon: Icons.logout_rounded,
               title: 'Logout',
-              onTap: () {},
+              onTap: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('userName');
+                await prefs.remove('buildings');
+                if (mounted) {
+                  context.go('/login');
+                }
+              },
               isLogout: true,
             ),
           ),
@@ -272,7 +365,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [primaryColor, primaryColor1,primaryColor2],
+          colors: [primaryColor, primaryColor1, primaryColor2],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -290,7 +383,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            text: 'Welcome User',
+            text: 'Welcome ${userName ?? 'User'}',
             color: white.withOpacity(0.8),
             size: SizeConfig.smallSubText,
             weight: FontWeight.w500,

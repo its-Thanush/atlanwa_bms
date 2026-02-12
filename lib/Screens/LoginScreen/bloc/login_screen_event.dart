@@ -3,9 +3,9 @@ part of 'login_screen_bloc.dart';
 @immutable
 sealed class LoginScreenEvent {}
 
-class LoginSubmitEvent extends LoginScreenEvent {
-  String username;
-  String password;
-  LoginSubmitEvent(this.username,this.password);
-}
+final class LoginSubmitEvent extends LoginScreenEvent {
+  final String username;
+  final String password;
 
+  LoginSubmitEvent(this.username, this.password);
+}

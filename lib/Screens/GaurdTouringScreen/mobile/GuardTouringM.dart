@@ -28,7 +28,8 @@ class _GuardTouringMState extends State<GuardTouringM>
   // NFC State
   bool _isNFCAvailable = false;
   bool _isScanning = false;
-  String? _guardUsername = 'Security Guard'; // Hardcoded username
+  String? _guardUsername = 'Security Guard';
+  // NfcSession? _currentSession;
 
   // Touring Data
   List<Map<String, dynamic>> scannedTours = [];
@@ -84,9 +85,11 @@ class _GuardTouringMState extends State<GuardTouringM>
   Future<void> _checkNFCAvailability() async {
     try {
       bool isAvailable = await NfcManager.instance.isAvailable();
-      setState(() {
-        _isNFCAvailable = isAvailable;
-      });
+      if (mounted) {
+        setState(() {
+          _isNFCAvailable = isAvailable;
+        });
+      }
     } catch (e) {
       _showSnackBar('NFC check failed: $e', isError: true);
     }
@@ -95,6 +98,11 @@ class _GuardTouringMState extends State<GuardTouringM>
   void _startNFCScanning() {
     if (!_isNFCAvailable) {
       _showSnackBar('NFC is not available on this device', isError: true);
+      return;
+    }
+
+    if (_isScanning) {
+      _showSnackBar('Scanning already in progress', isError: true);
       return;
     }
 
@@ -110,12 +118,14 @@ class _GuardTouringMState extends State<GuardTouringM>
         NfcPollingOption.iso18092,
       },
       onDiscovered: (NfcTag tag) async {
+        if (!mounted) return;
+
         try {
           var ndef = Ndef.from(tag);
           if (ndef == null) {
             _showSnackBar('Tag is not NDEF formatted', isError: true);
             setState(() => _isScanning = false);
-            NfcManager.instance.stopSession();
+            await _stopNFCSession();
             return;
           }
 
@@ -123,29 +133,11 @@ class _GuardTouringMState extends State<GuardTouringM>
           if (message == null || message.records.isEmpty) {
             _showSnackBar('No data found on tag', isError: true);
             setState(() => _isScanning = false);
-            NfcManager.instance.stopSession();
+            await _stopNFCSession();
             return;
           }
 
-          String location = '';
-          for (var record in message.records) {
-            if (record.typeNameFormat == TypeNameFormat.wellKnown) {
-              try {
-                var payload = record.payload;
-                if (payload.isNotEmpty) {
-                  int langCodeLength = payload[0] & 0x3F;
-                  if (payload.length > langCodeLength + 1) {
-                    location = String.fromCharCodes(
-                        payload.sublist(langCodeLength + 1));
-                  }
-                }
-              } catch (e) {
-                location = String.fromCharCodes(record.payload);
-              }
-            } else {
-              location = String.fromCharCodes(record.payload);
-            }
-          }
+          String location = _parseNdefMessage(message);
 
           if (!mounted) return;
 
@@ -164,7 +156,9 @@ class _GuardTouringMState extends State<GuardTouringM>
           });
 
           _showSnackBar('✓ Location scanned: ${location.trim()}');
-          NfcManager.instance.stopSession();
+
+          // Immediately stop session to prevent system dialogs
+          await _stopNFCSession();
 
           // Allow user to scan again after 2 seconds
           await Future.delayed(const Duration(seconds: 2));
@@ -172,12 +166,66 @@ class _GuardTouringMState extends State<GuardTouringM>
             _resetForNextScan();
           }
         } catch (e) {
+          debugPrint('Error reading NFC: $e');
           _showSnackBar('Error reading NFC: $e', isError: true);
           setState(() => _isScanning = false);
-          NfcManager.instance.stopSession(errorMessageIos: 'Read error');
+          await _stopNFCSession();
         }
       },
+      // onError: (error) async {
+      //   debugPrint('NFC Error: ${error.message}');
+      //   await _stopNFCSession();
+      //   if (mounted) {
+      //     _showSnackBar('NFC Error: ${error.message}', isError: true);
+      //     setState(() => _isScanning = false);
+      //   }
+      // },
     );
+  }
+
+  /// Parse NDEF message and extract location data
+  String _parseNdefMessage(NdefMessage message) {
+    String location = '';
+
+    for (var record in message.records) {
+      try {
+        if (record.typeNameFormat == TypeNameFormat.wellKnown) {
+          var payload = record.payload;
+          if (payload.isNotEmpty) {
+            int langCodeLength = payload[0] & 0x3F;
+            if (payload.length > langCodeLength + 1) {
+              location = String.fromCharCodes(
+                  payload.sublist(langCodeLength + 1));
+            }
+          }
+        } else {
+          location = String.fromCharCodes(record.payload);
+        }
+
+        if (location.isNotEmpty) break;
+      } catch (e) {
+        try {
+          location = String.fromCharCodes(record.payload);
+        } catch (parseError) {
+          continue;
+        }
+      }
+    }
+
+    return location;
+  }
+
+  /// Properly stop NFC session - THIS PREVENTS SYSTEM DIALOGS
+  Future<void> _stopNFCSession() async {
+    // try {
+    //   await NfcManager.instance.stopSession(
+    //     errorMessageIos: '',
+    //     errorMessageAndroid: '',
+    //   );
+    //   _currentSession = null;
+    // } catch (e) {
+    //   debugPrint('Error stopping NFC session: $e');
+    // }
   }
 
   void _resetForNextScan() {
@@ -373,6 +421,7 @@ class _GuardTouringMState extends State<GuardTouringM>
 
   @override
   void dispose() {
+    _stopNFCSession();
     _fadeController.dispose();
     _slideController.dispose();
     _pulseController.dispose();
@@ -402,6 +451,7 @@ class _GuardTouringMState extends State<GuardTouringM>
       backgroundColor: guardTouringPrimary,
       leading: IconButton(
         onPressed: () {
+          _stopNFCSession();
           context.go('/home');
         },
         icon: Icon(Icons.arrow_back, color: white),
@@ -491,7 +541,7 @@ class _GuardTouringMState extends State<GuardTouringM>
                               white),
                         ),
                       )
-                          : Icon(Icons.nfc),
+                          : Icon(Icons.nfc,color: white,),
                       label: CustomText(
                         text: _isScanning
                             ? 'Scanning Location...'
@@ -654,7 +704,7 @@ class _GuardTouringMState extends State<GuardTouringM>
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: _isScanning || !_isNFCAvailable ? null : _startNFCScanning,
-            icon: Icon(Icons.nfc),
+            icon: Icon(Icons.nfc, color: white),
             label: CustomText(
               text: _isScanning ? 'Scanning...' : 'Start NFC Scan',
               size: SizeConfig.subText,

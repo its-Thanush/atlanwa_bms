@@ -1,6 +1,8 @@
 import 'package:atlanwa_bms/allImports.dart';
 import '../Screens/GaurdTouringScreen/GaurdTouring.dart';
 import '../Screens/GaurdTouringScreen/bloc/gaurd_touring_bloc.dart';
+import '../Screens/HTLTscreen/HTLTscreen.dart';
+import '../Screens/HTLTscreen/bloc/htltssreen_bloc.dart';
 import '../Screens/LiftScreen/LiftScreen.dart';
 import '../Screens/LiftScreen/bloc/lift_screen_bloc.dart';
 import '../Screens/OperatingLog Screen/OperatingLog.dart';
@@ -79,6 +81,15 @@ class AppRoutes{
             lazy: false,
             create: (_) => OperatingLogBloc(),
             child:  OperatingLog(),
+          )
+      ),
+      GoRoute(
+          name: 'Htltscreen',
+          path: '/Htltscreen',
+          builder: (context, state) => BlocProvider(
+            lazy: false,
+            create: (_) => HtltssreenBloc(),
+            child:  Htltscreen(),
           )
       ),
 

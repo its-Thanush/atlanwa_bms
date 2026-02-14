@@ -526,7 +526,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
     final routeMap = {
       'lift_status': 'lift',
       'operating_log': 'operatinglog',
-      'ht_lt_panel': 'ht_lt_panel',
+      'ht_lt_panel': 'Htltscreen',
       'stp_automation': 'stp_automation',
       'parking_slots': 'parking_slots',
       'guard_touring':'touring',

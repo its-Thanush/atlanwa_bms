@@ -8,4 +8,6 @@ class ApiUrls {
   // Auth endpoints
   static const String login = 'guard/mobile-auth';
 
+  static const String operatingLog = "service-logs";
+
 }

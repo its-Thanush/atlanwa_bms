@@ -35,6 +35,14 @@ Color invoiceText = Color(0xFF475569);
 Color invoiceBorder = Color(0xFFF8FAFC);
 Color greyline = const Color(0xFFDEDEDE);
 
+Color pro_primaryColor =const Color(0xFF3270BC);
+Color pro_primaryColorDrk = const Color(0xFF1E4F8F);
+Color pro_primaryColorSub =  const Color(0xFF4D9AF7);
+Color pro_primaryColorLit =const Color(0xFF82B9FF);
+Color pro_primaryColorTooLit =const Color(0xFFEFF8FF);
+Color pro_primaryColorSubLight =  const Color(0xFFF5F6F8);
+Color pure_White = const Color(0xFFF9F9F9);
+
 // ============================================
 // BMS MODULE COLORS - LIFT STATUS
 // ============================================

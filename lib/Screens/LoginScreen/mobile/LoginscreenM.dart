@@ -1,4 +1,5 @@
 import 'package:atlanwa_bms/allImports.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginscreenM extends StatefulWidget {
   const LoginscreenM({super.key});
@@ -107,7 +108,7 @@ class _LoginscreenMState extends State<LoginscreenM> with TickerProviderStateMix
           setState(() {
             _isLoggingIn = false;
           });
-
+          final storage =  FlutterSecureStorage();
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('userName', state.name ?? '');
           await prefs.setStringList('buildings', state.buildings ?? []);

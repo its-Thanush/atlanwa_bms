@@ -1,4 +1,5 @@
 import 'package:atlanwa_bms/allImports.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gap/gap.dart';
 
 class HomeScreenM extends StatefulWidget {
@@ -13,8 +14,7 @@ class HomeScreenM extends StatefulWidget {
 class _HomeScreenMState extends State<HomeScreenM> {
   late HomeScreenBloc bloc;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  String? userName;
-  List<String>? buildings;
+
 
   final List<BMSModuleItem> bmsModules = [
     BMSModuleItem(
@@ -86,9 +86,11 @@ class _HomeScreenMState extends State<HomeScreenM> {
 
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
+    final storage =  FlutterSecureStorage();
+
     setState(() {
-      userName = prefs.getString('userName');
-      buildings = prefs.getStringList('buildings') ?? [];
+      Utilities.userName = prefs.getString('userName')!;
+      Utilities.buildings = prefs.getStringList('buildings') ?? [];
     });
   }
 
@@ -196,7 +198,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
                 ),
                 Gap(SizeConfig.smalltinyText!),
                 CustomText(
-                  text: '${userName ?? 'User'}',
+                  text: Utilities.userName,
                   color: white,
                   size: SizeConfig.medtitleText,
                   weight: FontWeight.w700,
@@ -219,7 +221,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (buildings?.isNotEmpty == true) ...[
+                    if (Utilities.buildings.isNotEmpty == true) ...[
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                         child: CustomText(
@@ -231,7 +233,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
                         ),
                       ),
                       Gap(8),
-                      ...buildings!.map((building) => Container(
+                      ...Utilities.buildings.map((building) => Container(
                         margin: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                         decoration: BoxDecoration(
                           color: primaryColor.withOpacity(0.05),
@@ -383,7 +385,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            text: 'Welcome ${userName ?? 'User'}',
+            text: 'Welcome ${Utilities.userName ?? 'User'}',
             color: white.withOpacity(0.8),
             size: SizeConfig.smallSubText,
             weight: FontWeight.w500,
@@ -523,7 +525,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
   void _navigateToModule(String route) {
     final routeMap = {
       'lift_status': 'lift',
-      'operating_log': 'operating_log',
+      'operating_log': 'operatinglog',
       'ht_lt_panel': 'ht_lt_panel',
       'stp_automation': 'stp_automation',
       'parking_slots': 'parking_slots',

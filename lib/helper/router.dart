@@ -3,6 +3,8 @@ import '../Screens/GaurdTouringScreen/GaurdTouring.dart';
 import '../Screens/GaurdTouringScreen/bloc/gaurd_touring_bloc.dart';
 import '../Screens/LiftScreen/LiftScreen.dart';
 import '../Screens/LiftScreen/bloc/lift_screen_bloc.dart';
+import '../Screens/OperatingLog Screen/OperatingLog.dart';
+import '../Screens/OperatingLog Screen/bloc/operating_log_bloc.dart';
 import '../Screens/SafetyCheckScreen/SafetyCheckScreen.dart';
 import '../Screens/SafetyCheckScreen/bloc/safety_check_bloc.dart';
 
@@ -68,6 +70,15 @@ class AppRoutes{
             lazy: false,
             create: (_) => GaurdTouringBloc(),
             child:  Gaurdtouring(),
+          )
+      ),
+      GoRoute(
+          name: 'operatinglog',
+          path: '/operatinglog',
+          builder: (context, state) => BlocProvider(
+            lazy: false,
+            create: (_) => OperatingLogBloc(),
+            child:  OperatingLog(),
           )
       ),
 

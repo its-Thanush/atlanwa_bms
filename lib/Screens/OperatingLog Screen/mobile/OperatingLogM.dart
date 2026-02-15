@@ -83,7 +83,6 @@ class _OperatingLogMState extends State<OperatingLogM> {
                 ),
               ),
               Gap(10),
-
             ],
           ),
           body: Padding(
@@ -334,8 +333,60 @@ class _OperatingLogMState extends State<OperatingLogM> {
                 SizedBox(height: 8),
                 // Actions
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    GestureDetector(
+                      onTap: () {
+                        // View details
+                        DeleteEditDetails(log);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: pro_primaryColorTooLit,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: pro_primaryColor),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 14, color: pro_primaryColor),
+                            SizedBox(width: 4),
+                            CustomText(
+                              text: 'Edit',
+                              color: pro_primaryColor,
+                              size: SizeConfig.tinyText,
+                              weight: FontWeight.w600,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        // View details
+                        DeleteLogDetails(log);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color:  Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.red.shade400),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 14, color: Colors.red.shade400),
+                            SizedBox(width: 4),
+                            CustomText(
+                              text: 'Delete',
+                              color: Colors.red.shade400,
+                              size: SizeConfig.tinyText,
+                              weight: FontWeight.w600,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     GestureDetector(
                       onTap: () {
                         // View details
@@ -402,6 +453,53 @@ class _OperatingLogMState extends State<OperatingLogM> {
         ),
       ),
     );
+  }
+
+  void DeleteLogDetails(OperationallogsModel log) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: CustomText(
+          text: 'Delete Log Details - #${log.sno}',
+          size: SizeConfig.titleText,
+          weight: FontWeight.w700,
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _detailRow('Building', log.building ?? 'N/A'),
+              _detailRow('Date', log.date ?? 'N/A'),
+              _detailRow('Time', log.time ?? 'N/A'),
+              _detailRow('Nature of Call', log.natureOfCall ?? 'N/A'),
+              _detailRow('Work Description', log.workDescription ?? 'N/A'),
+              _detailRow('Status', log.status ?? 'N/A'),
+              _detailRow('Username', log.username ?? 'N/A'),
+              if (log.lastUpdatedBy != null)
+                _detailRow('Last Updated By', log.lastUpdatedBy!),
+              if (log.lastUpdatedAt != null)
+                _detailRow('Last Updated At', log.lastUpdatedAt!),
+              Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(7),
+                    color: Colors.red.shade400,
+                    border: Border.all(color: Colors.red)
+                  ),
+                  child: CustomText(text: "Delete",color: white,size:SizeConfig.subText,weight: FontWeight.w500,),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void DeleteEditDetails(OperationallogsModel log) {
+
   }
 
   Widget _detailRow(String label, String value) {

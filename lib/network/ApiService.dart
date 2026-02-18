@@ -1,6 +1,7 @@
 import 'package:atlanwa_bms/allImports.dart';
 import 'package:dio/dio.dart';
 
+import '../model/GuardEntryModel.dart';
 import '../model/OperationalLogModel.dart';
 import '../model/loginModel.dart';
 import 'ApiUrls.dart';
@@ -73,4 +74,36 @@ class ApiServices {
       throw Exception('Unexpected error occurred');
     }
   }
+
+  static Future<GuardEntryRS> GuardEntry(GuardEntryRQ requestModel) async {
+    try {
+      final url = ApiUrls.GuardEntry;
+
+      final dio = Dio();
+      dio.options.baseUrl = ApiUrls.baseUrl;
+      dio.options.connectTimeout = const Duration(seconds: 30);
+      dio.options.receiveTimeout = const Duration(seconds: 30);
+      dio.options.headers['Content-Type'] = 'application/json';
+
+      final response = await dio.post(
+        url,
+        data: requestModel.toJson(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return GuardEntryRS.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw Exception('Failed to submit guard entry: ${response.statusCode}');
+      }
+    } on DioException catch (dioError) {
+      print('Dio Error: ${dioError.response?.statusCode}');
+      print('Error Message: ${dioError.message}');
+      print('Error Response: ${dioError.response?.data}');
+      throw Exception('Guard Entry Error: ${dioError.message}');
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Unexpected error occurred');
+    }
+  }
+
 }

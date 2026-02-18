@@ -5,6 +5,9 @@ import 'package:nfc_manager/nfc_manager.dart';
 import 'package:nfc_manager_ndef/nfc_manager_ndef.dart';
 import 'package:nfc_manager/ndef_record.dart';
 
+import '../../../model/GuardEntryModel.dart';
+import '../../../network/ApiService.dart';
+
 class GuardTouringM extends StatefulWidget {
   const GuardTouringM({super.key});
 
@@ -29,6 +32,7 @@ class _GuardTouringMState extends State<GuardTouringM>
   bool _isNFCAvailable = false;
   bool _isScanning = false;
   String? _guardUsername = 'Security Guard';
+  String _building = 'PRESTIGE POLYGON';
   // NfcSession? _currentSession;
 
   // Touring Data
@@ -137,30 +141,14 @@ class _GuardTouringMState extends State<GuardTouringM>
             return;
           }
 
-          String location = _parseNdefMessage(message);
+          String tagId = _parseNdefMessage(message);
 
           if (!mounted) return;
 
-          // Add scanned tour with hardcoded username and current time
-          final now = DateTime.now();
-          setState(() {
-            scannedTours.add({
-              'location': location.trim(),
-              'checkpoint': 'CP-${scannedTours.length + 1}',
-              'guardName': _guardUsername,
-              'timestamp': now,
-              'status': 'Completed',
-              'remarks': 'NFC scanned at ${location.trim()}',
-            });
-            _isScanning = false;
-          });
+          await _submitGuardEntry(tagId);
 
-          _showSnackBar('✓ Location scanned: ${location.trim()}');
-
-          // Immediately stop session to prevent system dialogs
           await _stopNFCSession();
 
-          // Allow user to scan again after 2 seconds
           await Future.delayed(const Duration(seconds: 2));
           if (mounted) {
             _resetForNextScan();
@@ -172,15 +160,44 @@ class _GuardTouringMState extends State<GuardTouringM>
           await _stopNFCSession();
         }
       },
-      // onError: (error) async {
-      //   debugPrint('NFC Error: ${error.message}');
-      //   await _stopNFCSession();
-      //   if (mounted) {
-      //     _showSnackBar('NFC Error: ${error.message}', isError: true);
-      //     setState(() => _isScanning = false);
-      //   }
-      // },
     );
+  }
+
+  Future<void> _submitGuardEntry(String tagId) async {
+    try {
+      final request = GuardEntryRQ(
+        tagId: tagId,
+        username: _guardUsername,
+        building: _building,
+      );
+
+      final response = await ApiServices.GuardEntry(request);
+
+      if (response.success == true) {
+        final now = DateTime.now();
+        setState(() {
+          scannedTours.add({
+            'location': response.location ?? tagId.trim(),
+            'floor': response.floor ?? 'N/A',
+            'checkpoint': 'CP-${scannedTours.length + 1}',
+            'guardName': _guardUsername,
+            'timestamp': now,
+            'status': 'Completed',
+            'remarks': response.message ?? 'NFC scanned successfully',
+          });
+          _isScanning = false;
+        });
+
+        _showSnackBar('✓ ${response.message ?? "Location scanned successfully"}');
+      } else {
+        _showSnackBar(response.message ?? 'Failed to submit entry', isError: true);
+        setState(() => _isScanning = false);
+      }
+    } catch (e) {
+      debugPrint('API Error: $e');
+      _showSnackBar('Failed to submit entry: $e', isError: true);
+      setState(() => _isScanning = false);
+    }
   }
 
   /// Parse NDEF message and extract location data
@@ -861,7 +878,7 @@ class _GuardTouringMState extends State<GuardTouringM>
                                 ),
                                 Gap(SizeConfig.commonMargin! * 0.3),
                                 CustomText(
-                                  text: tour['checkpoint'],
+                                  text: '${tour['checkpoint']} • Floor: ${tour['floor'] ?? 'N/A'}',
                                   size: SizeConfig.smallSubText,
                                   weight: FontWeight.w400,
                                   color: TextColourAsh,

@@ -10,4 +10,6 @@ class ApiUrls {
 
   static const String operatingLog = "service-logs";
 
+  static const String GuardEntry = 'guard/guard-log-entry-mobile';
+
 }

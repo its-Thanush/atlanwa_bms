@@ -1,6 +1,8 @@
 import 'package:atlanwa_bms/allImports.dart';
 import 'package:dio/dio.dart';
 
+import '../model/FireFetchModel.dart';
+import '../model/FireSubmitModel.dart';
 import '../model/GuardEntryModel.dart';
 import '../model/OperationalLogModel.dart';
 import '../model/loginModel.dart';
@@ -105,5 +107,63 @@ class ApiServices {
       throw Exception('Unexpected error occurred');
     }
   }
+
+
+  static Future<FireFetchRS> FireFetch (FireFetchRQ requestModel) async {
+    try {
+      final url = ApiUrls.fireFetch;
+
+      final dio = Dio();
+      dio.options.baseUrl = ApiUrls.baseUrl;
+      dio.options.connectTimeout = const Duration(seconds: 30);
+      dio.options.receiveTimeout = const Duration(seconds: 30);
+      dio.options.headers['Content-Type'] = 'application/json';
+
+      final response = await dio.post(
+        url,
+        data: requestModel.toJson(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return FireFetchRS.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw Exception('Failed: ${response.statusCode}');
+      }
+    } on DioException catch (dioError) {
+      throw Exception('Error: ${dioError.message}');
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Unexpected error occurred');
+    }
+  }
+
+  static Future<FireSubmitRS> FireSubmit (FireSubmitRQ requestModel) async {
+    try {
+      final url = ApiUrls.fireSubmit;
+
+      final dio = Dio();
+      dio.options.baseUrl = ApiUrls.baseUrl;
+      dio.options.connectTimeout = const Duration(seconds: 30);
+      dio.options.receiveTimeout = const Duration(seconds: 30);
+      dio.options.headers['Content-Type'] = 'application/json';
+
+      final response = await dio.post(
+        url,
+        data: requestModel.toJson(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return FireSubmitRS.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw Exception('Failed : ${response.statusCode}');
+      }
+    } on DioException catch (dioError) {
+      throw Exception('Error: ${dioError.message}');
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Unexpected error occurred');
+    }
+  }
+
 
 }

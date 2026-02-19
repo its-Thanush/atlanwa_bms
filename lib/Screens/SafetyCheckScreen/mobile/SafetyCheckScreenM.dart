@@ -15,70 +15,44 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
     with TickerProviderStateMixin {
   late SafetyCheckBloc bloc;
 
-  // Animation Controllers
-  late AnimationController _fadeController;
-  late AnimationController _slideController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
-  final List<String> checkpoints = [
-    'Check locking system of FHC Box Door',
-    'Open and close the doors for its smooth opening and closing',
-    'Check the glass and the rubber beading are in proper condition',
-    'Check door key is available in the break glass cabinet and properly',
-    'Ensure that the equipment is available and kept properly in its place',
-    'Check the Hydrant valves, Nozzle and all accessories in the FHC box',
-    'Check hoses in reels are twisted and Lugs are greased and free to move',
-    'Check valves can be opened and closed smoothly and there is no leak',
-    'Butterfly valves, ball valve are lubricated and there is no leak',
-    'Clean the Hose reel & Hose Reel Drum',
-    'Hydrant valve is secured with plastic cap with chain',
-    'Check the condition of lip washer in hydrant valves',
-    'ICV and gauge bell is kept in good condition',
-  ];
-
-  late List<bool> checkpointStatus;
-  final TextEditingController _remarksController = TextEditingController();
-  late Timer timer;
-  DateTime currentTime = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     bloc = BlocProvider.of<SafetyCheckBloc>(context);
-    checkpointStatus = List.filled(checkpoints.length, false);
     _initializeAnimations();
     _startTimer();
+    bloc.add(FireFetchEvent());
   }
 
   void _initializeAnimations() {
     // Fade animation
-    _fadeController = AnimationController(
+    bloc.fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
+    bloc.fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: bloc.fadeController, curve: Curves.easeIn),
     );
-    _fadeController.forward();
+    bloc.fadeController.forward();
 
     // Slide animation
-    _slideController = AnimationController(
+    bloc.slideController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _slideAnimation =
+    bloc.slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-          CurvedAnimation(parent: _slideController, curve: Curves.easeOut),
+          CurvedAnimation(parent: bloc.slideController, curve: Curves.easeOut),
         );
-    _slideController.forward();
+    bloc.slideController.forward();
   }
 
   void _startTimer() {
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    bloc.timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
-          currentTime = DateTime.now();
+          bloc.currentTime = DateTime.now();
         });
       }
     });
@@ -86,10 +60,10 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
 
   @override
   void dispose() {
-    _remarksController.dispose();
-    _fadeController.dispose();
-    _slideController.dispose();
-    timer.cancel();
+    bloc.remarksController.dispose();
+    bloc.fadeController.dispose();
+    bloc.slideController.dispose();
+    bloc.timer.cancel();
     super.dispose();
   }
 
@@ -133,10 +107,10 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
   }
 
   int get completedCheckpoints =>
-      checkpointStatus.where((status) => status).length;
+      bloc.selectedAnswerIndex.where((i) => i != -1).length;
 
   double get progressPercentage =>
-      checkpoints.isEmpty ? 0 : (completedCheckpoints / checkpoints.length);
+      bloc.checkpoints.isEmpty ? 0 : (completedCheckpoints / bloc.checkpoints.length);
 
   void _showSubmitBottomSheet() {
     showModalBottomSheet(
@@ -198,7 +172,7 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
             Gap(SizeConfig.commonMargin!),
             CustomText(
               text:
-              'You have completed $completedCheckpoints out of ${checkpoints.length} checkpoints',
+              'You have completed $completedCheckpoints out of ${bloc.checkpoints.length} checkpoints',
               size: SizeConfig.smallSubText,
               weight: FontWeight.w400,
               color: TextColourAsh,
@@ -238,7 +212,7 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
                     onPressed: () {
                       Navigator.pop(context);
                       FocusScope.of(context).unfocus();
-                      _submitSafetyCheck();
+                      bloc.add(FireSubmitEvent());
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: safetyCheckPrimary,
@@ -266,43 +240,85 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
     );
   }
 
-  void _submitSafetyCheck() {
-    setState(() {
-      checkpointStatus = List.filled(checkpoints.length, false);
-      _remarksController.clear();
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle, color: white, size: 20),
-            Gap(SizeConfig.commonMargin!),
-            Expanded(
-              child: CustomText(
-                text: 'Safety check submitted successfully!',
-                color: white,
-                size: SizeConfig.smallSubText,
-                weight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: statusActive,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        duration: Duration(seconds: 3),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<SafetyCheckBloc, SafetyCheckState>(
       listener: (context, state) {
-        // Handle state changes if needed
+        if(state is FireFetchSuccessState){
+          bloc.selectedAnswerIndex = List.filled(bloc.checkpoints.length, -1);
+        }
+
+        if (state is FireSubmitValidationFailedState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: white, size: 20),
+                  Gap(SizeConfig.commonMargin!),
+                  Expanded(
+                    child: CustomText(
+                      text: 'Please answer all ${bloc.checkpoints.length} questions before submitting.',
+                      color: white,
+                      size: SizeConfig.smallSubText,
+                      weight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.orange,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+
+        if (state is FireSubmitSuccessState) {
+          setState(() {
+            bloc.selectedAnswerIndex = List.filled(bloc.checkpoints.length, -1);
+            bloc.remarksController.clear();
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: white, size: 20),
+                  Gap(SizeConfig.commonMargin!),
+                  Expanded(
+                    child: CustomText(
+                      text: 'Safety check submitted successfully!',
+                      color: white,
+                      size: SizeConfig.smallSubText,
+                      weight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: statusActive,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+
+        if (state is FireSubmitFailedState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: CustomText(
+                text: 'Submission failed. Please try again.',
+                color: white,
+                size: SizeConfig.smallSubText,
+              ),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+
       },
       child: BlocBuilder<SafetyCheckBloc, SafetyCheckState>(
         builder: (context, state) {
@@ -339,7 +355,7 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
                       Icon(Icons.access_time, color: white, size: 16),
                       Gap(SizeConfig.commonMargin! * 0.5),
                       CustomText(
-                        text: _formatTime(currentTime),
+                        text: _formatTime(bloc.currentTime),
                         color: white,
                         size: SizeConfig.smallSubText,
                         weight: FontWeight.w600,
@@ -350,24 +366,30 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
               ],
             ),
             body: FadeTransition(
-              opacity: _fadeAnimation,
+              opacity: bloc.fadeAnimation,
               child: SlideTransition(
-                position: _slideAnimation,
+                position: bloc.slideAnimation,
                 child: SingleChildScrollView(
                   padding: EdgeInsets.all(SizeConfig.commonMargin! * 2),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildLocationHeader(),
-                      Gap(SizeConfig.commonMargin! * 2),
-                      _buildProgressCard(),
-                      Gap(SizeConfig.commonMargin! * 2.5),
-                      _buildCheckpointsList(),
-                      Gap(SizeConfig.commonMargin! * 2.5),
-                      _buildRemarksSection(),
-                      Gap(SizeConfig.commonMargin! * 3),
-                      _buildSubmitButton(),
-                      Gap(SizeConfig.commonMargin! * 2),
+                      if(bloc.isResponseCame)...[
+                        Gap(SizeConfig.commonMargin! * 2),
+                        _buildProgressCard(),
+                        Gap(SizeConfig.commonMargin! * 2.5),
+                        _buildCheckpointsList(),
+                        Gap(SizeConfig.commonMargin! * 2.5),
+                        _buildRemarksSection(),
+                        Gap(SizeConfig.commonMargin! * 3),
+                        _buildSubmitButton(),
+                        Gap(SizeConfig.commonMargin! * 2),
+                      ]else...[
+                        Container(
+                          child: CustomText(text: "No Response",),
+                        ),
+                      ]
                     ],
                   ),
                 ),
@@ -428,7 +450,7 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
                     ),
                     Gap(SizeConfig.commonMargin! * 0.3),
                     CustomText(
-                      text: "User",
+                      text: Utilities.userName,
                       size: SizeConfig.medtitleText,
                       weight: FontWeight.w700,
                       color: white,
@@ -510,7 +532,7 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: CustomText(
-                  text: '$completedCheckpoints/${checkpoints.length}',
+                  text: '$completedCheckpoints/${bloc.checkpoints.length}',
                   size: SizeConfig.smallSubText,
                   weight: FontWeight.w700,
                   color: safetyCheckPrimary,
@@ -565,9 +587,13 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
         ListView.builder(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
-          itemCount: checkpoints.length,
+          itemCount: bloc.checkpoints.length,
           itemBuilder: (context, index) {
-            final isChecked = checkpointStatus[index];
+            final question = bloc.checkpoints[index];
+            final options = question.availableOptions;
+            final selectedIdx = bloc.selectedAnswerIndex[index];
+            final isAnswered = selectedIdx != -1;
+
             return AnimatedContainer(
               duration: Duration(milliseconds: 300),
               margin: EdgeInsets.only(bottom: SizeConfig.commonMargin! * 1.2),
@@ -575,14 +601,12 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
                 color: white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isChecked
-                      ? statusActive
-                      : borderColor,
+                  color: isAnswered ? statusActive : borderColor,
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: isChecked
+                    color: isAnswered
                         ? statusActive.withOpacity(0.1)
                         : Colors.black.withOpacity(0.03),
                     blurRadius: 8,
@@ -592,65 +616,68 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
               ),
               child: Material(
                 color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    setState(() {
-                      checkpointStatus[index] = !checkpointStatus[index];
-                    });
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(SizeConfig.commonMargin! * 1.5),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isChecked
-                                ? statusActive
-                                : safetyCheckLight,
+                child: Padding(
+                  padding: EdgeInsets.all(SizeConfig.commonMargin! * 1.5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Question header row — unchanged
+                      Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isAnswered ? statusActive : safetyCheckLight,
+                            ),
+                            child: Center(
+                              child: CustomText(
+                                text: '${index + 1}',
+                                size: SizeConfig.subText,
+                                weight: FontWeight.w700,
+                                color: isAnswered ? white : safetyCheckPrimary,
+                              ),
+                            ),
                           ),
-                          child: Center(
+                          Gap(SizeConfig.commonMargin! * 1.2),
+                          Expanded(
                             child: CustomText(
-                              text: '${index + 1}',
+                              text: question.question ?? '',
                               size: SizeConfig.subText,
-                              weight: FontWeight.w700,
-                              color: isChecked ? white : safetyCheckPrimary,
+                              weight: FontWeight.w500,
+                              color: isAnswered ? TextColourBlk : TextColourGrey,
+                              maxLines: 3,
+                              textOverflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ),
-                        Gap(SizeConfig.commonMargin! * 1.2),
-                        Expanded(
-                          child: CustomText(
-                            text: checkpoints[index],
-                            size: SizeConfig.subText,
-                            weight: FontWeight.w500,
-                            color: isChecked ? TextColourBlk : TextColourGrey,
-                            maxLines: 3,
-                            textOverflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Gap(SizeConfig.commonMargin! * 1),
-                        Transform.scale(
-                          scale: 1.1,
-                          child: Checkbox(
-                            value: isChecked,
-                            onChanged: (value) {
-                              setState(() {
-                                checkpointStatus[index] = value ?? false;
-                              });
-                            },
-                            activeColor: statusActive,
-                            checkColor: white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
+                          Gap(SizeConfig.commonMargin! * 1),
+                        ],
+                      ),
+                      Gap(10),
+                      // Dynamic options — only non-empty options, single selection
+                      ...List.generate(options.length, (optIdx) {
+                        final isSelected = selectedIdx == optIdx;
+                        return Row(
+                          children: [
+                            Checkbox(
+                              activeColor: Colors.green,
+                              value: isSelected,
+                              onChanged: (checked) {
+                                setState(() {
+                                  bloc.selectedAnswerIndex[index] = isSelected ? -1 : optIdx;
+                                });
+                              },
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
+                            Gap(10),
+                            CustomText(
+                              text: options[optIdx],
+                              size: SizeConfig.subText,
+                            ),
+                          ],
+                        );
+                      }),
+                    ],
                   ),
                 ),
               ),
@@ -710,7 +737,7 @@ class _SafetycheckscreenMState extends State<SafetycheckscreenM>
             ),
             padding: EdgeInsets.all(SizeConfig.commonMargin! * 1.5),
             child: TextField(
-              controller: _remarksController,
+              controller: bloc.remarksController,
               maxLines: 5,
               decoration: InputDecoration(
                 border: InputBorder.none,

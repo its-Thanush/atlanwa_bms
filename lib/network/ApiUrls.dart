@@ -12,4 +12,8 @@ class ApiUrls {
 
   static const String GuardEntry = 'guard/guard-log-entry-mobile';
 
+  static const String fireFetch = "fire/mobile/fire-questions-scan";
+
+  static const String fireSubmit ="fire/mobile/fire-log-submit";
+
 }

@@ -139,12 +139,9 @@ class _LoginscreenMState extends State<LoginscreenM> with TickerProviderStateMix
               elevation: 6,
             ),
           );
-
-          Future.delayed(Duration(seconds: 1), () {
             if (mounted) {
               context.go('/home');
             }
-          });
         }
 
         if (state is LoginErrorState) {

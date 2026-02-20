@@ -515,7 +515,7 @@ class _GuardTouringMState extends State<GuardTouringM>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Guard Info Card
+            Gap(SizeConfig.commonMargin! * 3.5),
             _buildGuardInfoCard(),
             Gap(SizeConfig.commonMargin! * 2),
 
@@ -632,7 +632,7 @@ class _GuardTouringMState extends State<GuardTouringM>
                 ),
                 Gap(SizeConfig.commonMargin! * 0.3),
                 CustomText(
-                  text: _guardUsername ?? 'Security Guard',
+                  text: Utilities.userName,
                   size: SizeConfig.subText,
                   weight: FontWeight.w700,
                   color: white,

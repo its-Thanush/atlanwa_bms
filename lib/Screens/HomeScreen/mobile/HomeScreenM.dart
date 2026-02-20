@@ -306,12 +306,124 @@ class _HomeScreenMState extends State<HomeScreenM> {
               icon: Icons.logout_rounded,
               title: 'Logout',
               onTap: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('userName');
-                await prefs.remove('buildings');
-                if (mounted) {
-                  context.go('/login');
-                }
+                showDialog(
+                  context: context,
+                  barrierColor: Colors.black.withOpacity(0.5),
+                  builder: (BuildContext context) {
+                    return Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      backgroundColor: Colors.white,
+                      child: Padding(
+                        padding: EdgeInsets.all(SizeConfig.maxHeightAndWidth! * 1.2),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Icon Container
+                            Container(
+                              padding: EdgeInsets.all(SizeConfig.bigHeightAndWidth!),
+                              decoration: BoxDecoration(
+                                color: statusError.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.logout_rounded,
+                                color: statusError,
+                                size: SizeConfig.bigText!,
+                              ),
+                            ),
+
+                            SizedBox(height: SizeConfig.bigHeightAndWidth!),
+
+                            // Title
+                            CustomText(
+                              text: 'Are you sure?',
+                              size: SizeConfig.medtitleText,
+                              weight: FontWeight.bold,
+                              color: TextColourBlk,
+                            ),
+
+                            SizedBox(height: SizeConfig.heightAndWidth!),
+
+                            // Subtitle
+                            CustomText(
+                              text: 'You will be logged out of your account.',
+                              size: SizeConfig.smallSubText,
+                              color: TextColourAsh,
+                              textAlign: TextAlign.center,
+                            ),
+
+                            SizedBox(height: SizeConfig.maxHeightAndWidth! * 1.5),
+
+                            // Buttons Row
+                            Row(
+                              children: [
+                                // Cancel Button
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.pop(context),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: SizeConfig.bigHeightAndWidth!,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: GreyColourAsh,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Center(
+                                        child: CustomText(
+                                          text: 'Cancel',
+                                          size: SizeConfig.subText,
+                                          weight: FontWeight.w600,
+                                          color: TextColourBlk,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                SizedBox(width: SizeConfig.heightAndWidth!),
+
+                                // Logout Button
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      Navigator.pop(context);
+                                      final prefs = await SharedPreferences.getInstance();
+                                      await prefs.remove('userName');
+                                      await prefs.remove('buildings');
+                                      if (mounted) {
+                                        context.go('/login');
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: SizeConfig.bigHeightAndWidth!,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: statusError,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Center(
+                                        child: CustomText(
+                                          text: 'Logout',
+                                          size: SizeConfig.subText,
+                                          weight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
               },
               isLogout: true,
             ),

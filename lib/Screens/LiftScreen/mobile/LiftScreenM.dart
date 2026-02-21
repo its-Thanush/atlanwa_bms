@@ -54,6 +54,7 @@ class _LiftScreenMState extends State<LiftScreenM> {
   @override
   void initState() {
     bloc = BlocProvider.of<LiftScreenBloc>(context);
+    bloc.add(LiftFetchEvent());
     super.initState();
   }
 
@@ -63,20 +64,22 @@ class _LiftScreenMState extends State<LiftScreenM> {
     return BlocListener<LiftScreenBloc, LiftScreenState>(
       listener: (context, state) {
         // TODO: implement listener
+        if(state is LiftFetchSuccessState){
+
+        }
+
       },
       child: BlocBuilder<LiftScreenBloc, LiftScreenState>(
         builder: (context, state) {
           return Scaffold(
             backgroundColor: Background,
-            body: SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  Expanded(
-                    child: _buildLiftGrid(),
-                  ),
-                ],
-              ),
+            body: Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: _buildLiftGrid(),
+                ),
+              ],
             ),
           );
         },
@@ -103,6 +106,7 @@ class _LiftScreenMState extends State<LiftScreenM> {
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         children: [
+          Gap(20),
           Row(
             children: [
               Container(
@@ -178,6 +182,7 @@ class _LiftScreenMState extends State<LiftScreenM> {
             ],
           ),
           Gap(16),
+          //add drop down menu here Fetch and show building here when selected check that from this Utilities.buildings
           _buildStatusLegend(),
         ],
       ),

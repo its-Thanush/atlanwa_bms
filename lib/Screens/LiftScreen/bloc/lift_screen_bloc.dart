@@ -8,6 +8,12 @@ class LiftScreenBloc extends Bloc<LiftScreenEvent, LiftScreenState> {
   LiftScreenBloc() : super(LiftScreenInitial()) {
     on<LiftScreenEvent>((event, emit) {
       // TODO: implement event handler
+
+      if(event is LiftFetchEvent){
+
+      emit(LiftFetchSuccessState());
+      }
+
     });
   }
 }

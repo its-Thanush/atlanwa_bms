@@ -4,3 +4,5 @@ part of 'lift_screen_bloc.dart';
 sealed class LiftScreenState {}
 
 final class LiftScreenInitial extends LiftScreenState {}
+
+final class LiftFetchSuccessState extends LiftScreenState {}

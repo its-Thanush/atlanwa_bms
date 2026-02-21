@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import '../model/FireFetchModel.dart';
 import '../model/FireSubmitModel.dart';
 import '../model/GuardEntryModel.dart';
+import '../model/LiftFetchModel.dart';
 import '../model/OperationalLogModel.dart';
 import '../model/loginModel.dart';
 import 'ApiUrls.dart';
@@ -61,6 +62,39 @@ class ApiServices {
         if (response.data is List) {
           logs = (response.data as List)
               .map((json) => OperationallogsModel.fromJson(json))
+              .toList();
+        }
+        return logs;
+      } else {
+        throw Exception('Failed to fetch logs: ${response.statusCode}');
+      }
+    } on DioException catch (dioError) {
+      print('Dio Error: ${dioError.response?.statusCode}');
+      print('Error Message: ${dioError.message}');
+      throw Exception('Fetch Logs Error: ${dioError.message}');
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Unexpected error occurred');
+    }
+  }
+
+  static Future<List<LiftFetchModel>> getLiftsStatus() async {
+    try {
+      final url = ApiUrls.Lifts;
+
+      final dio = Dio();
+      dio.options.baseUrl = ApiUrls.baseUrl;
+      dio.options.connectTimeout = const Duration(seconds: 30);
+      dio.options.receiveTimeout = const Duration(seconds: 30);
+      dio.options.headers['Content-Type'] = 'application/json';
+
+      final response = await dio.get(url);
+
+      if (response.statusCode == 200) {
+        List<LiftFetchModel> logs = [];
+        if (response.data is List) {
+          logs = (response.data as List)
+              .map((json) => LiftFetchModel.fromJson(json))
               .toList();
         }
         return logs;

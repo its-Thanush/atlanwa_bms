@@ -16,4 +16,6 @@ class ApiUrls {
 
   static const String fireSubmit ="fire/mobile/fire-log-submit";
 
+  static const String Lifts ="lifts";
+
 }

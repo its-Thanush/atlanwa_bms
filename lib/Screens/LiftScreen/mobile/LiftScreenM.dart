@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:atlanwa_bms/allImports.dart';
 import 'package:gap/gap.dart';
+import '../../../model/LiftFetchModel.dart';
 import '../bloc/lift_screen_bloc.dart';
 
 class LiftScreenM extends StatefulWidget {
@@ -9,80 +12,134 @@ class LiftScreenM extends StatefulWidget {
   State<LiftScreenM> createState() => _LiftScreenMState();
 }
 
-class _LiftScreenMState extends State<LiftScreenM> {
+class _LiftScreenMState extends State<LiftScreenM> with TickerProviderStateMixin {
   late LiftScreenBloc bloc;
 
-  final List<LiftData> lifts = [
-    LiftData(
-      id: 'P1',
-      currentFloor: 7,
-      direction: LiftDirection.up,
-      status: LiftStatus.moving,
-    ),
-    LiftData(
-      id: 'P2',
-      currentFloor: 4,
-      direction: LiftDirection.up,
-      status: LiftStatus.moving,
-    ),
-    LiftData(
-      id: 'P3',
-      currentFloor: -2, // B2
-      direction: LiftDirection.down,
-      status: LiftStatus.moving,
-    ),
-    LiftData(
-      id: 'P4',
-      currentFloor: 5,
-      direction: LiftDirection.up,
-      status: LiftStatus.moving,
-    ),
-    LiftData(
-      id: 'P5',
-      currentFloor: 12,
-      direction: LiftDirection.idle,
-      status: LiftStatus.idle,
-    ),
-    LiftData(
-      id: 'P6',
-      currentFloor: 4,
-      direction: LiftDirection.down,
-      status: LiftStatus.moving,
-    ),
+  Timer? _pollingTimer;
+
+  String _selectedBuilding = 'PRESTIGE POLYGON';
+  List<Lift> _currentLifts = [];
+  LiftFetchModel? _fetchedData;
+
+  final List<String> _buildings = [
+    'PRESTIGE POLYGON',
+    'PRESTIGE PALLADIUM',
+    'PRESTIGE METROPOLITAN',
+    'PRESTIGE COSMOPOLITAN',
+    'PRESTIGE CYBER TOWERS',
   ];
+
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
-    bloc = BlocProvider.of<LiftScreenBloc>(context);
-    bloc.add(LiftFetchEvent());
     super.initState();
+    bloc = BlocProvider.of<LiftScreenBloc>(context);
+    _initAnimations();
+    _pollingTimer = Timer.periodic(
+      const Duration(milliseconds: 500),
+          (_) => bloc.add(LiftFetchEvent()),
+    );
+
   }
+
+  void _initAnimations() {
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
+    );
+
+    _slideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+
+    _fadeController.forward();
+    _slideController.forward();
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    _fadeController.dispose();
+    _slideController.dispose();
+    super.dispose();
+  }
+
+  List<Lift> _getLiftsForBuilding(LiftFetchModel data, String building) {
+    switch (building) {
+      case 'PRESTIGE POLYGON':      return data.polygon ?? [];
+      case 'PRESTIGE PALLADIUM':    return data.palladium ?? [];
+      case 'PRESTIGE METROPOLITAN': return data.metropolitan ?? [];
+      case 'PRESTIGE COSMOPOLITAN': return data.cosmopolitan ?? [];
+      case 'PRESTIGE CYBER TOWERS': return data.cyberTowers ?? [];
+      default: return [];
+    }
+  }
+
+  Color _getLiftColor(Lift lift) {
+    if (lift.alarm == '1') return statusError;
+    if (lift.fl == '?')    return statusInactive;
+    final fl = lift.fl ?? '';
+    if (fl == 'G' || fl == '0') return statusWarning;
+    if (fl.startsWith('B') || fl.startsWith('-')) return statusInfo;
+    return statusActive;
+  }
+
+  IconData _getFloorIcon(String? fl) {
+    if (fl == null || fl == '?') return Icons.help_outline;
+    if (fl == 'G' || fl == '0') return Icons.remove;
+    if (fl.startsWith('B') || fl.startsWith('-')) return Icons.arrow_downward;
+    return Icons.arrow_upward;
+  }
+
+  String _getFloorLabel(String? fl) {
+    if (fl == null || fl == '?') return 'Unknown';
+    if (fl == 'G')           return 'Ground Floor';
+    if (fl.startsWith('B'))  return 'Basement ${fl.substring(1)}';
+    if (fl.startsWith('-'))  return 'Basement ${fl.substring(1)}';
+    return 'Floor $fl';
+  }
+
+  int _countAlarms() =>
+      _currentLifts.where((l) => l.alarm == '1').length;
+
+  int _countActive() =>
+      _currentLifts.where((l) => l.fl != '?' && l.alarm != '1').length;
 
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return BlocListener<LiftScreenBloc, LiftScreenState>(
       listener: (context, state) {
-        // TODO: implement listener
-        if(state is LiftFetchSuccessState){
-
+        if (state is LiftFetchSuccessState) {
+          setState(() {
+            _fetchedData = state.data;
+            _currentLifts = _getLiftsForBuilding(state.data, _selectedBuilding);
+          });
         }
-
       },
-      child: BlocBuilder<LiftScreenBloc, LiftScreenState>(
-        builder: (context, state) {
-          return Scaffold(
-            backgroundColor: Background,
-            body: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: _buildLiftGrid(),
-                ),
-              ],
-            ),
-          );
-        },
+      child: Scaffold(
+        backgroundColor: Background,
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(child: _buildBody()),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -91,39 +148,26 @@ class _LiftScreenMState extends State<LiftScreenM> {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [primaryColor, primaryColor1.withOpacity(0.8)],
+          colors: [liftStatusPrimary, liftStatusPrimary.withOpacity(0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withOpacity(0.2),
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            color: liftStatusPrimary.withOpacity(0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         children: [
-          Gap(20),
+          Gap(40),
           Row(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: IconButton(
-                  onPressed: () {
-                    context.go('/home');
-                  },
-                  icon: Icon(Icons.arrow_back, color: white),
-                  tooltip: 'Back to Home',
-                  splashRadius: 24,
-                ),
-              ),
-              Gap(16),
+              _buildHeaderIconBtn(Icons.arrow_back, () => context.go('/home')),
+              Gap(12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,45 +179,45 @@ class _LiftScreenMState extends State<LiftScreenM> {
                       weight: FontWeight.w700,
                       letterSpacing: 0.3,
                     ),
-                    Gap(4),
+                    Gap(2),
                     CustomText(
                       text: 'Real-time elevator monitoring',
-                      color: white.withOpacity(0.85),
-                      size: SizeConfig.smalltinyText,
+                      color: white.withOpacity(0.8),
+                      size: SizeConfig.tinyText,
                       weight: FontWeight.w400,
-                      letterSpacing: 0.2,
                     ),
                   ],
                 ),
               ),
+              // Live badge
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 8,
-                      height: 8,
+                      width: 7,
+                      height: 7,
                       decoration: BoxDecoration(
                         color: statusActive,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: statusActive.withOpacity(0.5),
+                            color: statusActive.withOpacity(0.6),
                             blurRadius: 4,
                             spreadRadius: 1,
                           ),
                         ],
                       ),
                     ),
-                    Gap(6),
+                    Gap(5),
                     CustomText(
                       text: 'Live',
                       color: white,
-                      size: SizeConfig.smalltinyText,
+                      size: SizeConfig.tinyText,
                       weight: FontWeight.w600,
                     ),
                   ],
@@ -181,100 +225,259 @@ class _LiftScreenMState extends State<LiftScreenM> {
               ),
             ],
           ),
-          Gap(16),
-          //add drop down menu here Fetch and show building here when selected check that from this Utilities.buildings
-          _buildStatusLegend(),
+          Gap(14),
+          _buildBuildingDropdown(),
+          // Gap(12),
+          //
+          // _buildStatusLegend(),
         ],
       ),
     );
   }
 
-  Widget _buildStatusLegend() {
+  Widget _buildHeaderIconBtn(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: white, size: 20),
+      ),
+    );
+  }
+
+  Widget _buildBuildingDropdown() {
     return Container(
-      padding: EdgeInsets.all(12),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
         color: white.withOpacity(0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: white.withOpacity(0.2),
-          width: 1,
+        border: Border.all(color: white.withOpacity(0.3), width: 1),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedBuilding,
+          dropdownColor: liftStatusPrimary,
+          iconEnabledColor: white,
+          isExpanded: true,
+          isDense: true,
+          icon: Icon(Icons.keyboard_arrow_down_rounded, color: white),
+          style: TextStyle(
+            color: white,
+            fontSize: SizeConfig.smallSubText,
+            fontFamily: 'Lato',
+            fontWeight: FontWeight.w600,
+          ),
+          items: _buildings
+              .map((b) => DropdownMenuItem(
+            value: b,
+            child: Row(
+              children: [
+                Icon(Icons.business, color: white.withOpacity(0.8), size: 16),
+                Gap(8),
+                Text(b),
+              ],
+            ),
+          ))
+              .toList(),
+          onChanged: (val) {
+            if (val == null) return;
+            setState(() {
+              _selectedBuilding = val;
+              if (_fetchedData != null) {
+                _currentLifts = _getLiftsForBuilding(_fetchedData!, val);
+              }
+            });
+          },
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+    );
+  }
+
+
+  Widget _buildDivider() =>
+      Container(width: 1, height: 16, color: white.withOpacity(0.25));
+
+  Widget _buildBody() {
+    return BlocBuilder<LiftScreenBloc, LiftScreenState>(
+      builder: (context, state) {
+        if (state is LiftFetchLoadingState) {
+          return _buildLoading();
+        }
+        if (state is LiftFetchErrorState) {
+          return _buildError(state.message);
+        }
+        if (_currentLifts.isEmpty) {
+          return _buildEmpty();
+        }
+        return _buildContent();
+      },
+    );
+  }
+
+  Widget _buildLoading() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildLegendItem(Icons.arrow_upward, 'Moving Up', white),
-          Container(width: 1, height: 20, color: white.withOpacity(0.3)),
-          _buildLegendItem(Icons.arrow_downward, 'Moving Down', white),
-          Container(width: 1, height: 20, color: white.withOpacity(0.3)),
-          _buildLegendItem(Icons.remove, 'Idle', white),
+          CircularProgressIndicator(color: liftStatusPrimary),
+          Gap(16),
+          CustomText(
+            text: 'Fetching lift data…',
+            color: TextColourAsh,
+            size: SizeConfig.smallSubText,
+            weight: FontWeight.w500,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildLegendItem(IconData icon, String label, Color color) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 16),
-        Gap(4),
-        CustomText(
-          text: label,
-          color: color.withOpacity(0.9),
-          size: SizeConfig.miniText,
-          weight: FontWeight.w500,
+  Widget _buildError(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: statusError.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.error_outline, color: statusError, size: 36),
+            ),
+            Gap(16),
+            CustomText(
+              text: 'Failed to load lift data',
+              color: TextColourBlk,
+              size: SizeConfig.subText,
+              weight: FontWeight.w700,
+            ),
+            Gap(8),
+            CustomText(
+              text: message,
+              color: TextColourAsh,
+              size: SizeConfig.tinyText,
+              weight: FontWeight.w400,
+              textAlign: TextAlign.center,
+            ),
+            Gap(20),
+            GestureDetector(
+              onTap: () => bloc.add(LiftFetchEvent()),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                decoration: BoxDecoration(
+                  color: liftStatusPrimary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.refresh_rounded, color: white, size: 18),
+                    Gap(8),
+                    CustomText(
+                      text: 'Retry',
+                      color: white,
+                      size: SizeConfig.subText,
+                      weight: FontWeight.w600,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
-    );
-  }
-
-  Widget _buildLiftGrid() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.85,
-        ),
-        itemCount: lifts.length,
-        itemBuilder: (context, index) {
-          return _buildLiftCard(lifts[index]);
-        },
       ),
     );
   }
 
-  Widget _buildLiftCard(LiftData lift) {
+  Widget _buildEmpty() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.elevator_outlined, color: TextColourAsh, size: 48),
+          Gap(12),
+          CustomText(
+            text: 'No lift data available',
+            color: TextColourAsh,
+            size: SizeConfig.subText,
+            weight: FontWeight.w500,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 0.82,
+              ),
+              itemCount: _currentLifts.length,
+              itemBuilder: (context, index) {
+                return _buildLiftCard(_currentLifts[index]);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+  Widget _buildLiftCard(Lift lift) {
+    final color = _getLiftColor(lift);
+    final icon  = _getFloorIcon(lift.fl);
+    final hasAlarm = lift.alarm == '1';
+    final doorOpen = lift.door == '1';
+
     return Container(
       decoration: BoxDecoration(
         color: cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: _getLiftStatusColor(lift).withOpacity(0.3),
-          width: 2,
+          color: color.withOpacity(hasAlarm ? 0.6 : 0.25),
+          width: hasAlarm ? 2 : 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: _getLiftStatusColor(lift).withOpacity(0.15),
-            blurRadius: 20,
-            offset: Offset(0, 6),
+            color: color.withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Header with direction indicator
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
             decoration: BoxDecoration(
-              color: _getLiftStatusColor(lift).withOpacity(0.1),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
+              color: color.withOpacity(0.08),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(19),
+                topRight: Radius.circular(19),
               ),
             ),
             child: Row(
@@ -285,65 +488,105 @@ class _LiftScreenMState extends State<LiftScreenM> {
                   color: TextColourBlk,
                   size: SizeConfig.subText,
                   weight: FontWeight.w700,
-                  letterSpacing: 0.3,
+                  letterSpacing: 0.2,
                 ),
-                Container(
-                  padding: EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: _getLiftStatusColor(lift),
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _getLiftStatusColor(lift).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
+                Row(
+                  children: [
+                    if (hasAlarm) ...[
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: statusError.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Icon(Icons.warning_amber,
+                            color: statusError, size: 14),
                       ),
+                      Gap(6),
                     ],
-                  ),
-                  child: Icon(
-                    _getDirectionIcon(lift.direction),
-                    color: white,
-                    size: 20,
-                  ),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withOpacity(0.35),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(icon, color: white, size: 18),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
 
-          // Floor display
           Expanded(
-            child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Floor circle
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: 68,
+                    height: 68,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _getLiftStatusColor(lift),
-                        width: 3,
-                      ),
-                      color: _getLiftStatusColor(lift).withOpacity(0.05),
+                      border: Border.all(color: color, width: 3),
+                      color: color.withOpacity(0.06),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.15),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
                     child: Center(
                       child: CustomText(
-                        text: _getFloorDisplay(lift.currentFloor),
-                        color: _getLiftStatusColor(lift),
-                        size: SizeConfig.bigText! + 8,
+                        text: lift.fl ?? '--',
+                        color: color,
+                        size: lift.fl != null && lift.fl!.length > 2
+                            ? SizeConfig.titleText!
+                            : SizeConfig.bigText! + 4,
                         weight: FontWeight.w800,
                         letterSpacing: 0.5,
                       ),
                     ),
                   ),
-                  Gap(12),
+                  Gap(8),
                   CustomText(
-                    text: _getFloorLabel(lift.currentFloor),
+                    text: _getFloorLabel(lift.fl),
                     color: TextColourAsh,
-                    size: SizeConfig.smallSubText,
+                    size: SizeConfig.miniText,
                     weight: FontWeight.w500,
                   ),
+                  // Gap(8),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     _buildStatusBadge(
+                  //       icon: doorOpen
+                  //           ? Icons.sensor_door
+                  //           : Icons.door_front_door,
+                  //       label: doorOpen ? 'Open' : 'Closed',
+                  //       color: doorOpen ? statusWarning : statusActive,
+                  //     ),
+                  //     if (hasAlarm) ...[
+                  //       Gap(6),
+                  //       _buildStatusBadge(
+                  //         icon: Icons.notifications_active,
+                  //         label: 'Alarm',
+                  //         color: statusError,
+                  //       ),
+                  //     ],
+                  //   ],
+                  // ),
                 ],
               ),
             ),
@@ -353,84 +596,31 @@ class _LiftScreenMState extends State<LiftScreenM> {
     );
   }
 
-  String _getFloorDisplay(int floor) {
-    if (floor < 0) {
-      return 'B${floor.abs()}';
-    }
-    return floor.toString();
+  Widget _buildStatusBadge({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.25), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          Gap(3),
+          CustomText(
+            text: label,
+            color: color,
+            size: SizeConfig.miniText,
+            weight: FontWeight.w600,
+          ),
+        ],
+      ),
+    );
   }
-
-  String _getFloorLabel(int floor) {
-    if (floor < 0) {
-      return 'Basement ${floor.abs()}';
-    } else if (floor == 0) {
-      return 'Ground Floor';
-    }
-    return 'Floor $floor';
-  }
-
-  IconData _getDirectionIcon(LiftDirection direction) {
-    switch (direction) {
-      case LiftDirection.up:
-        return Icons.arrow_upward;
-      case LiftDirection.down:
-        return Icons.arrow_downward;
-      case LiftDirection.idle:
-        return Icons.remove;
-    }
-  }
-
-  Color _getLiftStatusColor(LiftData lift) {
-    switch (lift.status) {
-      case LiftStatus.moving:
-        if (lift.direction == LiftDirection.up) {
-          return statusActive;
-        } else if (lift.direction == LiftDirection.down) {
-          return statusInfo;
-        }
-        return statusInactive;
-      case LiftStatus.idle:
-        return statusWarning;
-      case LiftStatus.maintenance:
-        return statusError;
-    }
-  }
-
-  String _getStatusText(LiftStatus status) {
-    switch (status) {
-      case LiftStatus.moving:
-        return 'In Motion';
-      case LiftStatus.idle:
-        return 'Idle';
-      case LiftStatus.maintenance:
-        return 'Maintenance';
-    }
-  }
-}
-
-// Data Models
-class LiftData {
-  final String id;
-  final int currentFloor;
-  final LiftDirection direction;
-  final LiftStatus status;
-
-  LiftData({
-    required this.id,
-    required this.currentFloor,
-    required this.direction,
-    required this.status,
-  });
-}
-
-enum LiftDirection {
-  up,
-  down,
-  idle,
-}
-
-enum LiftStatus {
-  moving,
-  idle,
-  maintenance,
 }

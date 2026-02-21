@@ -2,6 +2,7 @@ import 'package:atlanwa_bms/allImports.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 
+import '../../../Widgets/CommonNfcAuth.dart';
 import '../bloc/htltssreen_bloc.dart';
 
 
@@ -1280,6 +1281,29 @@ class _HtltscreenMState extends State<HtltscreenM> with TickerProviderStateMixin
     );
   }
 
+  void _openWithNFCAuth({required String topic, required String targetView}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CommonNFCAuth(
+          topic: topic,
+          userName: Utilities.userName,
+          building: "PRESTIGE",
+          authorizedId: '123',
+          onAuthSuccess: (scannedId) {
+            Navigator.pop(context);
+            if(targetView=='ht'){
+              _CreateLog(context);
+            }else
+              {
+                _CreateLTLog(context);
+              }
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _fadeController.dispose();
@@ -1334,7 +1358,7 @@ class _HtltscreenMState extends State<HtltscreenM> with TickerProviderStateMixin
                 if(selectedView =='ht')
                   GestureDetector(
                     onTap: (){
-                      _CreateLog(context);
+                      _openWithNFCAuth(topic: 'HT Panel', targetView: 'ht');
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -1360,7 +1384,7 @@ class _HtltscreenMState extends State<HtltscreenM> with TickerProviderStateMixin
                 if(selectedView =='lt')
                   GestureDetector(
                     onTap: (){
-                      _CreateLTLog(context);
+                      _openWithNFCAuth(topic: 'LT Panel', targetView: 'lt');
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -1425,6 +1449,7 @@ class _HtltscreenMState extends State<HtltscreenM> with TickerProviderStateMixin
               setState(() {
                 selectedView = 'ht';
               });
+
             },
           ),
           Gap(SizeConfig.commonMargin! * 1.5),

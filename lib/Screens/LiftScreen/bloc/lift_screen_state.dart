@@ -5,4 +5,14 @@ sealed class LiftScreenState {}
 
 final class LiftScreenInitial extends LiftScreenState {}
 
-final class LiftFetchSuccessState extends LiftScreenState {}
+class LiftFetchLoadingState extends LiftScreenState {}
+
+class LiftFetchSuccessState extends LiftScreenState {
+  final LiftFetchModel data;
+  LiftFetchSuccessState(this.data);
+}
+
+class LiftFetchErrorState extends LiftScreenState {
+  final String message;
+  LiftFetchErrorState(this.message);
+}

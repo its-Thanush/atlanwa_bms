@@ -22,6 +22,7 @@ class FireFetchRQ {
 class FireFetchRS {
   bool? success;
   String? message;
+  String? type;
   List<Questions>? questions;
 
   FireFetchRS({this.success, this.message, this.questions});
@@ -29,6 +30,7 @@ class FireFetchRS {
   FireFetchRS.fromJson(Map<String, dynamic> json) {
     success = json['success'];
     message = json['message'];
+    type = json['type'];
     if (json['questions'] != null) {
       questions = <Questions>[];
       json['questions'].forEach((v) {
@@ -41,6 +43,7 @@ class FireFetchRS {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['success'] = this.success;
     data['message'] = this.message;
+    data['type'] = this.type;
     if (this.questions != null) {
       data['questions'] = this.questions!.map((v) => v.toJson()).toList();
     }

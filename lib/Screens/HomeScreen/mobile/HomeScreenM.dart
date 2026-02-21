@@ -2,6 +2,8 @@ import 'package:atlanwa_bms/allImports.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gap/gap.dart';
 
+import '../../../Widgets/CommonNfcAuth.dart';
+
 class HomeScreenM extends StatefulWidget {
   final Map<String, dynamic>? extra;
 
@@ -635,14 +637,34 @@ class _HomeScreenMState extends State<HomeScreenM> {
   }
 
   void _navigateToModule(String route) {
+    // Safety Check requires NFC auth before entering
+    if (route == 'safety_check') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CommonNFCAuth(
+            topic: 'Safety Check',
+            userName: Utilities.userName,
+            building: "PRESTIGE POLYGON",
+            authorizedId: '123',
+            onAuthSuccess: (_) {
+              Navigator.pop(context);
+              context.goNamed('safety');
+            },
+          ),
+        ),
+      );
+      return;
+    }
+
     final routeMap = {
       'lift_status': 'lift',
       'operating_log': 'operatinglog',
       'ht_lt_panel': 'Htltscreen',
       'stp_automation': 'stp_automation',
       'parking_slots': 'parking_slots',
-      'guard_touring':'touring',
-      'safety_check':'safety'
+      'guard_touring': 'touring',
+      'safety_check': 'safety'
     };
 
     final namedRoute = routeMap[route];

@@ -16,6 +16,7 @@ class SafetyCheckBloc extends Bloc<SafetyCheckEvent, SafetyCheckState> {
 
   List<Questions> checkpoints =[];
   bool isResponseCame = true;
+  String SafetyType="";
 
 
   late AnimationController fadeController;
@@ -43,6 +44,7 @@ class SafetyCheckBloc extends Bloc<SafetyCheckEvent, SafetyCheckState> {
         await ApiServices.FireFetch(req).then((value) async {
 
           if (value.success == true) {
+            SafetyType=value.type!;
             checkpoints = value.questions!;
             selectedAnswerIndex = List.filled(checkpoints.length, -1);
             isResponseCame = true;
@@ -71,7 +73,7 @@ class SafetyCheckBloc extends Bloc<SafetyCheckEvent, SafetyCheckState> {
         req.tagId = "456";
         req.buildingName = "PRESTIGE POLYGON";
         req.username = Utilities.userName;
-        req.type = "Fire Hydrant cabinet";
+        req.type = SafetyType.isEmpty?"Fire Hydrant cabinet":SafetyType;
         req.questions = AnsweredQuestions(answers: answersMap);
         req.remarks = remarksController.text;
 

@@ -7,7 +7,10 @@ class Utilities {
   static final sessionStateStream = StreamController<SessionState>();
 
   static String userName = "";
+  static String nfcAuth = "";
+  static bool AUTHfailed =false;
   static List<String> buildings = [];
+
 
   static Future<void> loadSession() async {
     final prefs = await SharedPreferences.getInstance();

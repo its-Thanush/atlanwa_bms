@@ -31,7 +31,6 @@ class _GuardTouringMState extends State<GuardTouringM>
   // NFC State
   bool _isNFCAvailable = false;
   bool _isScanning = false;
-  String? _guardUsername = 'Security Guard';
   String _building = 'PRESTIGE POLYGON';
   // NfcSession? _currentSession;
 
@@ -167,7 +166,7 @@ class _GuardTouringMState extends State<GuardTouringM>
     try {
       final request = GuardEntryRQ(
         tagId: tagId,
-        username: _guardUsername,
+        username: Utilities.userName,
         building: _building,
       );
 
@@ -180,7 +179,7 @@ class _GuardTouringMState extends State<GuardTouringM>
             'location': response.location ?? tagId.trim(),
             'floor': response.floor ?? 'N/A',
             'checkpoint': 'CP-${scannedTours.length + 1}',
-            'guardName': _guardUsername,
+            'guardName': Utilities.userName,
             'timestamp': now,
             'status': 'Completed',
             'remarks': response.message ?? 'NFC scanned successfully',

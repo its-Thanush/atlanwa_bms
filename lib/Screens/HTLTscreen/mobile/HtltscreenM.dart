@@ -1290,6 +1290,7 @@ class _HtltscreenMState extends State<HtltscreenM> with TickerProviderStateMixin
           userName: Utilities.userName,
           building: "PRESTIGE",
           authorizedId: '123',
+          setAuth: true,
           onAuthSuccess: (scannedId) {
             Navigator.pop(context);
             if(targetView=='ht'){

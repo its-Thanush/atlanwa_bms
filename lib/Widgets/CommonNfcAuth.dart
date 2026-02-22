@@ -12,6 +12,7 @@ class CommonNFCAuth extends StatefulWidget {
   final String topic;
   final String userName;
   final String building;
+  final bool setAuth;
   final String authorizedId;
   final void Function(String scannedId) onAuthSuccess;
 
@@ -20,21 +21,21 @@ class CommonNFCAuth extends StatefulWidget {
     required this.topic,
     required this.userName,
     required this.building,
+    required this.setAuth,
     required this.authorizedId,
     required this.onAuthSuccess,
   }) : super(key: key);
 
   @override
-  State<CommonNFCAuth> createState() => _CommonNFCAuthState();
+  State<CommonNFCAuth> createState() => CommonNFCAuthState();
 }
 
 
-enum _ScanStatus { idle, scanning, success, failed, nfcUnavailable }
+enum ScanStatus { idle, scanning, loading, success, failed, nfcUnavailable }
 
-
-class _CommonNFCAuthState extends State<CommonNFCAuth>
+class CommonNFCAuthState extends State<CommonNFCAuth>
     with TickerProviderStateMixin {
-  _ScanStatus _status = _ScanStatus.idle;
+  ScanStatus _status = ScanStatus.idle;
   bool _isNFCAvailable = false;
   bool _isProcessing = false;
   String _statusMessage = 'Hold your NFC card near the device';
@@ -117,7 +118,7 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
 
       if (!available) {
         setState(() {
-          _status = _ScanStatus.nfcUnavailable;
+          _status = ScanStatus.nfcUnavailable;
           _statusMessage = 'NFC is not available on this device';
         });
         _stopRipple();
@@ -128,7 +129,7 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _status = _ScanStatus.nfcUnavailable;
+        _status = ScanStatus.nfcUnavailable;
         _statusMessage = 'Could not initialise NFC';
       });
     }
@@ -166,7 +167,16 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
           final scannedId = _parseNdefMessage(message).trim();
           await _stopNFCSession();
 
-          if (scannedId == widget.authorizedId.trim()) {
+          if (!widget.setAuth) {
+            if (mounted) {
+              _stopRipple();
+              setState(() {
+                _status = ScanStatus.loading;
+                _statusMessage = 'Verifying card, please wait...';
+              });
+            }
+            if (mounted) widget.onAuthSuccess(scannedId);
+          } else if (scannedId == widget.authorizedId.trim()) {
             _handleResult(true, 'Access Granted');
             await Future.delayed(const Duration(milliseconds: 1200));
             if (mounted) widget.onAuthSuccess(scannedId);
@@ -181,11 +191,19 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
     );
   }
 
+  void showApiDenied(String message) {
+    _handleResult(false, message);
+  }
+
+  void showApiSuccess() {
+    _handleResult(true, 'Access Granted');
+  }
+
   void _handleResult(bool success, String message) {
     if (!mounted) return;
     _stopRipple();
     setState(() {
-      _status = success ? _ScanStatus.success : _ScanStatus.failed;
+      _status = success ? ScanStatus.success : ScanStatus.failed;
       _statusMessage = message;
     });
     _resultController.forward(from: 0.0);
@@ -207,7 +225,7 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
       setState(() => _isNFCAvailable = available);
       if (!available) {
         setState(() {
-          _status = _ScanStatus.nfcUnavailable;
+          _status = ScanStatus.nfcUnavailable;
           _statusMessage = 'NFC is not available on this device';
         });
         _stopRipple();
@@ -215,7 +233,7 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _status = _ScanStatus.nfcUnavailable;
+        _status = ScanStatus.nfcUnavailable;
         _statusMessage = 'Could not initialise NFC';
       });
     }
@@ -231,7 +249,7 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
     _rippleController.repeat();
     _pulseController.repeat(reverse: true);
     setState(() {
-      _status = _ScanStatus.scanning;
+      _status = ScanStatus.scanning;
       _statusMessage = 'Hold your NFC card near the device';
     });
     _startNFCSession();
@@ -383,10 +401,12 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
     return SizedBox(
       height: 260,
       child: Center(
-        child: _status == _ScanStatus.idle
+        child: _status == ScanStatus.idle
             ? _buildScanButton()
-            : _status == _ScanStatus.scanning
+            : _status == ScanStatus.scanning
             ? _buildRippleScanner()
+            : _status == ScanStatus.loading
+            ? _buildLoadingSpinner()
             : _buildResultIcon(),
       ),
     );
@@ -397,7 +417,7 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
       onTap: () {
         if (!_isNFCAvailable) return;
         setState(() {
-          _status = _ScanStatus.scanning;
+          _status = ScanStatus.scanning;
           _statusMessage = 'Hold your NFC card near the device';
         });
         _rippleController.repeat();
@@ -461,6 +481,24 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
     );
   }
 
+  Widget _buildLoadingSpinner() {
+    return Container(
+      width: 130,
+      height: 130,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.orange.withOpacity(0.08),
+        border: Border.all(color: Colors.orange.withOpacity(0.2), width: 2),
+      ),
+      child: const Center(
+        child: CircularProgressIndicator(
+          color: Colors.orange,
+          strokeWidth: 3,
+        ),
+      ),
+    );
+  }
+
   Widget _buildRippleRing(
       double progress, double maxRadius, Color color, double opacity) {
     return Container(
@@ -497,8 +535,8 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
   }
 
   Widget _buildResultIcon() {
-    final bool isSuccess = _status == _ScanStatus.success;
-    final bool isUnavailable = _status == _ScanStatus.nfcUnavailable;
+    final bool isSuccess = _status == ScanStatus.success;
+    final bool isUnavailable = _status == ScanStatus.nfcUnavailable;
 
     final Color iconColor = isSuccess
         ? statusActive
@@ -530,12 +568,14 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
   }
 
   Widget _buildStatusCard() {
-    final Color statusColor = _status == _ScanStatus.success
+    final Color statusColor = _status == ScanStatus.success
         ? statusActive
-        : _status == _ScanStatus.failed
+        : _status == ScanStatus.failed
         ? statusError
-        : _status == _ScanStatus.nfcUnavailable
+        : _status == ScanStatus.nfcUnavailable
         ? statusWarning
+        : _status == ScanStatus.loading
+        ? Colors.orange
         : pro_primaryColor;
 
     return AnimatedContainer(
@@ -563,18 +603,20 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
                 height: 8,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _status == _ScanStatus.scanning
+                  color: _status == ScanStatus.scanning
                       ? statusColor
                       : statusColor,
                 ),
               ),
               Gap(8),
               CustomText(
-                text: _status == _ScanStatus.scanning
+                text: _status == ScanStatus.scanning
                     ? 'Scanning…'
-                    : _status == _ScanStatus.success
+                    : _status == ScanStatus.loading
+                    ? 'Verifying…'
+                    : _status == ScanStatus.success
                     ? 'Access Granted'
-                    : _status == _ScanStatus.nfcUnavailable
+                    : _status == ScanStatus.nfcUnavailable
                     ? 'NFC Unavailable'
                     : 'Access Denied',
                 size: SizeConfig.subText,
@@ -591,7 +633,7 @@ class _CommonNFCAuthState extends State<CommonNFCAuth>
             color: TextColourAsh,
             textAlign: TextAlign.center,
           ),
-          if (_status == _ScanStatus.failed) ...[
+          if (_status == ScanStatus.failed) ...[
             Gap(SizeConfig.commonMargin! * 1.2),
             GestureDetector(
               onTap: _retryNFCScan,

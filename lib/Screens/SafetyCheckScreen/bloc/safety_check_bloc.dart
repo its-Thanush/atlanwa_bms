@@ -35,8 +35,9 @@ class SafetyCheckBloc extends Bloc<SafetyCheckEvent, SafetyCheckState> {
       // TODO: implement event handler
 
       if(event is FireFetchEvent){
+        print("Scanned Auth Data");
         FireFetchRQ req = FireFetchRQ();
-        req.tagId="456";
+        req.tagId=Utilities.nfcAuth;
         req.buildingName="PRESTIGE POLYGON";
 
         print("---REQ--- ${jsonEncode(req)}");
@@ -68,6 +69,8 @@ class SafetyCheckBloc extends Bloc<SafetyCheckEvent, SafetyCheckState> {
           final selectedOption = checkpoints[i].availableOptions[selectedAnswerIndex[i]];
           answersMap[question] = selectedOption;
         }
+
+        print("----SafetyType---->"+SafetyType);
 
         FireSubmitRQ req = FireSubmitRQ();
         req.tagId = "456";

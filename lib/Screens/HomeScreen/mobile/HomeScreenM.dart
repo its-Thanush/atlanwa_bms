@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:atlanwa_bms/allImports.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gap/gap.dart';
 
 import '../../../Widgets/CommonNfcAuth.dart';
+import '../../../model/FireFetchModel.dart';
+import '../../../network/ApiService.dart';
 
 class HomeScreenM extends StatefulWidget {
   final Map<String, dynamic>? extra;
@@ -636,20 +640,51 @@ class _HomeScreenMState extends State<HomeScreenM> {
     );
   }
 
+
+
   void _navigateToModule(String route) {
-    // Safety Check requires NFC auth before entering
     if (route == 'safety_check') {
+      final nfcKey = GlobalKey<CommonNFCAuthState>();
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => CommonNFCAuth(
+            key: nfcKey,
             topic: 'Safety Check',
             userName: Utilities.userName,
             building: "PRESTIGE POLYGON",
-            authorizedId: '123',
-            onAuthSuccess: (_) {
-              Navigator.pop(context);
-              context.goNamed('safety');
+            setAuth: false,
+            authorizedId: '',
+            onAuthSuccess: (scannedId) async {
+              Utilities.nfcAuth = scannedId;
+
+              FireFetchRQ req = FireFetchRQ();
+              req.tagId = Utilities.nfcAuth;
+              req.buildingName = "PRESTIGE POLYGON";
+
+              print("---REQ--- ${jsonEncode(req)}");
+
+              try {
+                final value = await ApiServices.FireFetch(req);
+
+                if (value.success == true) {
+                  // ✅ Success — show on NFC screen then navigate
+                  nfcKey.currentState?.showApiSuccess();
+                  await Future.delayed(const Duration(milliseconds: 1200));
+                  Navigator.pop(context);
+                  context.goNamed('safety');
+                } else {
+                  // ❌ API denied — show denied on NFC screen
+                  Utilities.AUTHfailed = true;
+                  nfcKey.currentState?.showApiDenied('Access Denied – Unauthorized Card');
+                }
+              } catch (e) {
+                // ❌ Error — show denied on NFC screen
+                Utilities.AUTHfailed = true;
+                print("FireFetch error: $e");
+                nfcKey.currentState?.showApiDenied('Something went wrong. Please try again.');
+              }
             },
           ),
         ),

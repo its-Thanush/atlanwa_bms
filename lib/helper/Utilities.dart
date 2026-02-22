@@ -10,6 +10,7 @@ class Utilities {
   static String nfcAuth = "";
   static bool AUTHfailed =false;
   static List<String> buildings = [];
+  static String selectedBuilding = "";
 
 
   static Future<void> loadSession() async {

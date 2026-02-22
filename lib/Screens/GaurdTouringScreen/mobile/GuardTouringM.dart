@@ -31,7 +31,7 @@ class _GuardTouringMState extends State<GuardTouringM>
   // NFC State
   bool _isNFCAvailable = false;
   bool _isScanning = false;
-  String _building = 'PRESTIGE POLYGON';
+  String _building = '';
   // NfcSession? _currentSession;
 
   // Touring Data
@@ -167,7 +167,7 @@ class _GuardTouringMState extends State<GuardTouringM>
       final request = GuardEntryRQ(
         tagId: tagId,
         username: Utilities.userName,
-        building: _building,
+        building: Utilities.selectedBuilding,
       );
 
       final response = await ApiServices.GuardEntry(request);

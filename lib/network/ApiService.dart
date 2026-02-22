@@ -5,6 +5,7 @@ import '../model/FireFetchModel.dart';
 import '../model/FireSubmitModel.dart';
 import '../model/GuardEntryModel.dart';
 import '../model/LiftFetchModel.dart';
+import '../model/OpLogEntryModel.dart';
 import '../model/OperationalLogModel.dart';
 import '../model/loginModel.dart';
 import 'ApiUrls.dart';
@@ -41,7 +42,6 @@ class ApiServices {
     }
   }
 
-  // GET Operating Logs
   static Future<List<OperationallogsModel>> getOperatingLogs() async {
     try {
       final url = ApiUrls.operatingLog;
@@ -131,7 +131,6 @@ class ApiServices {
     }
   }
 
-
   static Future<FireFetchRS> FireFetch (FireFetchRQ requestModel) async {
     try {
       final url = ApiUrls.fireFetch;
@@ -187,6 +186,35 @@ class ApiServices {
       throw Exception('Unexpected error occurred');
     }
   }
+
+  static Future<OpLogEntryRS> OperatorLogEntry (OpLogEntryRQ requestModel) async {
+    try {
+      final url = ApiUrls.operatingLog;
+
+      final dio = Dio();
+      dio.options.baseUrl = ApiUrls.baseUrl;
+      dio.options.connectTimeout = const Duration(seconds: 30);
+      dio.options.receiveTimeout = const Duration(seconds: 30);
+      dio.options.headers['Content-Type'] = 'application/json';
+
+      final response = await dio.post(
+        url,
+        data: requestModel.toJson(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return OpLogEntryRS.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw Exception('Failed : ${response.statusCode}');
+      }
+    } on DioException catch (dioError) {
+      throw Exception('Error: ${dioError.message}');
+    } catch (e) {
+      print('Error: $e');
+      throw Exception('Unexpected error occurred');
+    }
+  }
+
 
 
 }

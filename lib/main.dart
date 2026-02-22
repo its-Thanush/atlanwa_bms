@@ -36,18 +36,3 @@ class MyApp extends StatelessWidget {
 
   }
 }
-
-// return BlocProvider<LoginScreenBloc>(
-//   create: (context) => LoginScreenBloc(),
-//   child: MaterialApp(
-//     debugShowCheckedModeBanner: false,
-//     title: 'Atlanwa BMS',
-//     theme: ThemeData(
-//       primarySwatch: Colors.blue,
-//       useMaterial3: true,
-//     ),
-//     home: Loginscreen(),
-//
-//   ),
-// );
-

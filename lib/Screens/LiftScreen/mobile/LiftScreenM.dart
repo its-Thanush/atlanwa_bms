@@ -17,7 +17,7 @@ class _LiftScreenMState extends State<LiftScreenM> with TickerProviderStateMixin
 
   Timer? _pollingTimer;
 
-  String _selectedBuilding = 'PRESTIGE POLYGON';
+  String _selectedBuilding = Utilities.selectedBuilding;
   List<Lift> _currentLifts = [];
   LiftFetchModel? _fetchedData;
 
@@ -162,6 +162,7 @@ class _LiftScreenMState extends State<LiftScreenM> with TickerProviderStateMixin
       ),
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Gap(40),
           Row(
@@ -226,7 +227,8 @@ class _LiftScreenMState extends State<LiftScreenM> with TickerProviderStateMixin
             ],
           ),
           Gap(14),
-          _buildBuildingDropdown(),
+          CustomText(text: _selectedBuilding,color: white, size: SizeConfig.titleText, weight: FontWeight.w600,)
+          // _buildBuildingDropdown(),
           // Gap(12),
           //
           // _buildStatusLegend(),

@@ -633,7 +633,6 @@ class _OperatingLogMState extends State<OperatingLogM> {
 
               const SizedBox(height: 18),
 
-              /// Nature of Call
               CustomText(
                 text: "Nature of Call",
                 size: SizeConfig.smallSubText,
@@ -721,7 +720,9 @@ class _OperatingLogMState extends State<OperatingLogM> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        bloc.add(CreateOpLogEvent());
+                      },
                       child: CustomText(text: "Create Log",color: white,),
                     ),
                   ),

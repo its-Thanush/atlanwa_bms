@@ -38,7 +38,7 @@ class SafetyCheckBloc extends Bloc<SafetyCheckEvent, SafetyCheckState> {
         print("Scanned Auth Data");
         FireFetchRQ req = FireFetchRQ();
         req.tagId=Utilities.nfcAuth;
-        req.buildingName="PRESTIGE POLYGON";
+        req.buildingName=Utilities.selectedBuilding;
 
         print("---REQ--- ${jsonEncode(req)}");
 
@@ -74,7 +74,7 @@ class SafetyCheckBloc extends Bloc<SafetyCheckEvent, SafetyCheckState> {
 
         FireSubmitRQ req = FireSubmitRQ();
         req.tagId = "456";
-        req.buildingName = "PRESTIGE POLYGON";
+        req.buildingName = Utilities.selectedBuilding;
         req.username = Utilities.userName;
         req.type = SafetyType.isEmpty?"Fire Hydrant cabinet":SafetyType;
         req.questions = AnsweredQuestions(answers: answersMap);

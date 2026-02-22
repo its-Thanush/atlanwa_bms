@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:atlanwa_bms/allImports.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -20,6 +21,10 @@ class HomeScreenM extends StatefulWidget {
 class _HomeScreenMState extends State<HomeScreenM> {
   late HomeScreenBloc bloc;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  DateTime? _lastBackPressed;
+
+  final Set<String> _comingSoonRoutes = {'operating_log', 'stp_automation','parking_slots'};
+
 
 
   final List<BMSModuleItem> bmsModules = [
@@ -97,28 +102,71 @@ class _HomeScreenMState extends State<HomeScreenM> {
     setState(() {
       Utilities.userName = prefs.getString('userName')!;
       Utilities.buildings = prefs.getStringList('buildings') ?? [];
+      if (Utilities.buildings.isNotEmpty && Utilities.selectedBuilding.isEmpty) {
+        Utilities.selectedBuilding = Utilities.buildings.first;
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
-    return BlocListener<HomeScreenBloc, HomeScreenState>(
-      listener: (context, state) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        final now = DateTime.now();
+        final isDoubleBack = _lastBackPressed != null &&
+            now.difference(_lastBackPressed!) < Duration(seconds: 2);
+        if (isDoubleBack) {
+          exit(0);
+        } else {
+          _lastBackPressed = now;
+          _showExitSnackbar();
+        }
       },
-      child: BlocBuilder<HomeScreenBloc, HomeScreenState>(
-        builder: (context, state) {
-          return Scaffold(
-            key: _scaffoldKey,
-            appBar: _buildAppBar(),
-            drawer: _buildDrawer(),
-            backgroundColor: Background,
-            body: _buildBody(),
-          );
+      child: BlocListener<HomeScreenBloc, HomeScreenState>(
+        listener: (context, state) {
         },
+        child: BlocBuilder<HomeScreenBloc, HomeScreenState>(
+          builder: (context, state) {
+            return Scaffold(
+              key: _scaffoldKey,
+              appBar: _buildAppBar(),
+              drawer: _buildDrawer(),
+              backgroundColor: Background,
+              body: _buildBody(),
+            );
+          },
+        ),
       ),
     );
   }
+  void _showExitSnackbar() {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        backgroundColor: Color(0xFF1E1E2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: Duration(seconds: 2),
+        content: Row(
+          children: [
+            Icon(Icons.exit_to_app_rounded, color: primaryColor, size: 20),
+            Gap(12),
+            CustomText(
+              text: 'Press back again to exit',
+              color: white,
+              size: SizeConfig.smallSubText,
+              weight: FontWeight.w500,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
@@ -239,61 +287,72 @@ class _HomeScreenMState extends State<HomeScreenM> {
                         ),
                       ),
                       Gap(8),
-                      ...Utilities.buildings.map((building) => Container(
-                        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: primaryColor.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: primaryColor.withOpacity(0.1),
-                            width: 1,
-                          ),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => Navigator.pop(context),
+                      ...Utilities.buildings.map((building) {
+                        final isSelected = Utilities.selectedBuilding == building;
+                        return Container(
+                          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          decoration: BoxDecoration(
+                            // CHANGE: highlight selected with solid light purple, else transparent
+                            color: isSelected ? primaryColor.withOpacity(0.12) : primaryColor.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(10),
-                            splashColor: primaryColor.withOpacity(0.1),
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 36,
-                                    height: 36,
-                                    decoration: BoxDecoration(
-                                      color: primaryColor.withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              // CHANGE: stronger border when selected
+                              color: isSelected ? primaryColor.withOpacity(0.5) : primaryColor.withOpacity(0.1),
+                              width: isSelected ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                setState(() {
+                                  Utilities.selectedBuilding = building;
+                                });
+                                Navigator.pop(context);
+                              },
+                              borderRadius: BorderRadius.circular(10),
+                              splashColor: primaryColor.withOpacity(0.1),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        // CHANGE: icon bg stronger when selected
+                                        color: isSelected ? primaryColor.withOpacity(0.25) : primaryColor.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.apartment_rounded,
+                                        color: primaryColor,
+                                        size: 18,
+                                      ),
                                     ),
-                                    child: Icon(
-                                      Icons.apartment_rounded,
-                                      color: primaryColor,
-                                      size: 18,
+                                    Gap(12),
+                                    Expanded(
+                                      child: CustomText(
+                                        text: building,
+                                        color: isSelected ? primaryColor : TextColourBlk,
+                                        size: SizeConfig.smallSubText,
+                                        weight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                        maxLines: 2,
+                                        textOverflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
-                                  Gap(12),
-                                  Expanded(
-                                    child: CustomText(
-                                      text: building,
-                                      color: TextColourBlk,
-                                      size: SizeConfig.smallSubText,
-                                      weight: FontWeight.w600,
-                                      maxLines: 2,
-                                      textOverflow: TextOverflow.ellipsis,
+                                    Icon(
+                                      isSelected ? Icons.check_circle_rounded : Icons.arrow_forward_ios_rounded,
+                                      color: isSelected ? primaryColor : primaryColor.withOpacity(0.4),
+                                      size: isSelected ? 18 : 14,
                                     ),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_forward_ios_rounded,
-                                    color: primaryColor.withOpacity(0.4),
-                                    size: 14,
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      )).toList(),
+                        );
+                      }).toList(),
                       Gap(SizeConfig.commonMargin! * 2),
                     ],
                   ],
@@ -511,9 +570,9 @@ class _HomeScreenMState extends State<HomeScreenM> {
           ),
           Gap(5),
           CustomText(
-            text: 'Manage Your Building Systems',
+            text: Utilities.selectedBuilding,
             color: white,
-            size: SizeConfig.bigText,
+            size: SizeConfig.medbigText,
             weight: FontWeight.w700,
           ),
           Gap(5),
@@ -643,6 +702,11 @@ class _HomeScreenMState extends State<HomeScreenM> {
 
 
   void _navigateToModule(String route) {
+    if (_comingSoonRoutes.contains(route)) {
+      _showComingSoonSnackbar();
+      return;
+    }
+
     if (route == 'safety_check') {
       final nfcKey = GlobalKey<CommonNFCAuthState>();
 
@@ -653,7 +717,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
             key: nfcKey,
             topic: 'Safety Check',
             userName: Utilities.userName,
-            building: "PRESTIGE POLYGON",
+            building: Utilities.selectedBuilding,
             setAuth: false,
             authorizedId: '',
             onAuthSuccess: (scannedId) async {
@@ -661,7 +725,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
 
               FireFetchRQ req = FireFetchRQ();
               req.tagId = Utilities.nfcAuth;
-              req.buildingName = "PRESTIGE POLYGON";
+              req.buildingName = Utilities.selectedBuilding;
 
               print("---REQ--- ${jsonEncode(req)}");
 
@@ -719,6 +783,31 @@ class _HomeScreenMState extends State<HomeScreenM> {
         ),
       );
     }
+  }
+
+  void _showComingSoonSnackbar() {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        backgroundColor: Color(0xFF1E1E2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: Duration(seconds: 2),
+        content: Row(
+          children: [
+            Icon(Icons.construction_rounded, color: SecondaryColor, size: 20),
+            Gap(12),
+            CustomText(
+              text: 'Coming Soon',
+              color: white,
+              size: SizeConfig.smallSubText,
+              weight: FontWeight.w500,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
 }

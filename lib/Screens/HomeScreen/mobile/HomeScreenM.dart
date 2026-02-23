@@ -23,9 +23,11 @@ class _HomeScreenMState extends State<HomeScreenM> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime? _lastBackPressed;
 
-  final Set<String> _comingSoonRoutes = {'operating_log', 'stp_automation','parking_slots'};
-
-
+  final Set<String> _comingSoonRoutes = {
+    'operating_log',
+    'stp_automation',
+    'parking_slots',
+  };
 
   final List<BMSModuleItem> bmsModules = [
     BMSModuleItem(
@@ -86,7 +88,6 @@ class _HomeScreenMState extends State<HomeScreenM> {
     ),
   ];
 
-
   @override
   void initState() {
     bloc = BlocProvider.of<HomeScreenBloc>(context);
@@ -97,7 +98,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
 
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    final storage =  FlutterSecureStorage();
+    final storage = FlutterSecureStorage();
 
     setState(() {
       Utilities.userName = prefs.getString('userName')!;
@@ -116,7 +117,8 @@ class _HomeScreenMState extends State<HomeScreenM> {
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         final now = DateTime.now();
-        final isDoubleBack = _lastBackPressed != null &&
+        final isDoubleBack =
+            _lastBackPressed != null &&
             now.difference(_lastBackPressed!) < Duration(seconds: 2);
         if (isDoubleBack) {
           exit(0);
@@ -126,8 +128,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
         }
       },
       child: BlocListener<HomeScreenBloc, HomeScreenState>(
-        listener: (context, state) {
-        },
+        listener: (context, state) {},
         child: BlocBuilder<HomeScreenBloc, HomeScreenState>(
           builder: (context, state) {
             return Scaffold(
@@ -142,6 +143,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
       ),
     );
   }
+
   void _showExitSnackbar() {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -166,7 +168,6 @@ class _HomeScreenMState extends State<HomeScreenM> {
       ),
     );
   }
-
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
@@ -277,7 +278,10 @@ class _HomeScreenMState extends State<HomeScreenM> {
                   children: [
                     if (Utilities.buildings.isNotEmpty == true) ...[
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
                         child: CustomText(
                           text: 'YOUR BUILDINGS',
                           color: primaryColor,
@@ -288,16 +292,24 @@ class _HomeScreenMState extends State<HomeScreenM> {
                       ),
                       Gap(8),
                       ...Utilities.buildings.map((building) {
-                        final isSelected = Utilities.selectedBuilding == building;
+                        final isSelected =
+                            Utilities.selectedBuilding == building;
                         return Container(
-                          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          margin: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             // CHANGE: highlight selected with solid light purple, else transparent
-                            color: isSelected ? primaryColor.withOpacity(0.12) : primaryColor.withOpacity(0.05),
+                            color: isSelected
+                                ? primaryColor.withOpacity(0.12)
+                                : primaryColor.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               // CHANGE: stronger border when selected
-                              color: isSelected ? primaryColor.withOpacity(0.5) : primaryColor.withOpacity(0.1),
+                              color: isSelected
+                                  ? primaryColor.withOpacity(0.5)
+                                  : primaryColor.withOpacity(0.1),
                               width: isSelected ? 1.5 : 1,
                             ),
                           ),
@@ -313,7 +325,10 @@ class _HomeScreenMState extends State<HomeScreenM> {
                               borderRadius: BorderRadius.circular(10),
                               splashColor: primaryColor.withOpacity(0.1),
                               child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                                 child: Row(
                                   children: [
                                     Container(
@@ -321,7 +336,9 @@ class _HomeScreenMState extends State<HomeScreenM> {
                                       height: 36,
                                       decoration: BoxDecoration(
                                         // CHANGE: icon bg stronger when selected
-                                        color: isSelected ? primaryColor.withOpacity(0.25) : primaryColor.withOpacity(0.15),
+                                        color: isSelected
+                                            ? primaryColor.withOpacity(0.25)
+                                            : primaryColor.withOpacity(0.15),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Icon(
@@ -334,16 +351,24 @@ class _HomeScreenMState extends State<HomeScreenM> {
                                     Expanded(
                                       child: CustomText(
                                         text: building,
-                                        color: isSelected ? primaryColor : TextColourBlk,
+                                        color: isSelected
+                                            ? primaryColor
+                                            : TextColourBlk,
                                         size: SizeConfig.smallSubText,
-                                        weight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                        weight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w600,
                                         maxLines: 2,
                                         textOverflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     Icon(
-                                      isSelected ? Icons.check_circle_rounded : Icons.arrow_forward_ios_rounded,
-                                      color: isSelected ? primaryColor : primaryColor.withOpacity(0.4),
+                                      isSelected
+                                          ? Icons.check_circle_rounded
+                                          : Icons.arrow_forward_ios_rounded,
+                                      color: isSelected
+                                          ? primaryColor
+                                          : primaryColor.withOpacity(0.4),
                                       size: isSelected ? 18 : 14,
                                     ),
                                   ],
@@ -363,7 +388,10 @@ class _HomeScreenMState extends State<HomeScreenM> {
           Container(
             decoration: BoxDecoration(
               border: Border(
-                top: BorderSide(color: GreyColourAsh.withOpacity(0.1), width: 1),
+                top: BorderSide(
+                  color: GreyColourAsh.withOpacity(0.1),
+                  width: 1,
+                ),
               ),
             ),
             padding: EdgeInsets.all(12),
@@ -381,13 +409,17 @@ class _HomeScreenMState extends State<HomeScreenM> {
                       ),
                       backgroundColor: Colors.white,
                       child: Padding(
-                        padding: EdgeInsets.all(SizeConfig.maxHeightAndWidth! * 1.2),
+                        padding: EdgeInsets.all(
+                          SizeConfig.maxHeightAndWidth! * 1.2,
+                        ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             // Icon Container
                             Container(
-                              padding: EdgeInsets.all(SizeConfig.bigHeightAndWidth!),
+                              padding: EdgeInsets.all(
+                                SizeConfig.bigHeightAndWidth!,
+                              ),
                               decoration: BoxDecoration(
                                 color: statusError.withOpacity(0.1),
                                 shape: BoxShape.circle,
@@ -419,7 +451,9 @@ class _HomeScreenMState extends State<HomeScreenM> {
                               textAlign: TextAlign.center,
                             ),
 
-                            SizedBox(height: SizeConfig.maxHeightAndWidth! * 1.5),
+                            SizedBox(
+                              height: SizeConfig.maxHeightAndWidth! * 1.5,
+                            ),
 
                             // Buttons Row
                             Row(
@@ -455,7 +489,8 @@ class _HomeScreenMState extends State<HomeScreenM> {
                                   child: GestureDetector(
                                     onTap: () async {
                                       Navigator.pop(context);
-                                      final prefs = await SharedPreferences.getInstance();
+                                      final prefs =
+                                          await SharedPreferences.getInstance();
                                       await prefs.remove('userName');
                                       await prefs.remove('buildings');
                                       if (mounted) {
@@ -530,11 +565,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
         padding: EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildWelcomeSection(),
-            Gap(32),
-            _buildModulesGrid(),
-          ],
+          children: [_buildWelcomeSection(), Gap(32), _buildModulesGrid()],
         ),
       ),
     );
@@ -589,7 +620,8 @@ class _HomeScreenMState extends State<HomeScreenM> {
               Gap(12),
               Expanded(
                 child: CustomText(
-                  text: 'Monitor and control all your building management modules in one unified interface',
+                  text:
+                      'Monitor and control all your building management modules in one unified interface',
                   color: white,
                   size: SizeConfig.smallSubText,
                   weight: FontWeight.w400,
@@ -638,10 +670,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
                 offset: Offset(0, 4),
               ),
             ],
-            border: Border.all(
-              color: module.color.withOpacity(0.1),
-              width: 1,
-            ),
+            border: Border.all(color: module.color.withOpacity(0.1), width: 1),
           ),
           child: Material(
             color: Colors.transparent,
@@ -662,11 +691,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
                         color: module.lightColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
-                        module.icon,
-                        color: module.color,
-                        size: 28,
-                      ),
+                      child: Icon(module.icon, color: module.color, size: 28),
                     ),
                     Gap(15),
                     Column(
@@ -698,8 +723,6 @@ class _HomeScreenMState extends State<HomeScreenM> {
       ),
     );
   }
-
-
 
   void _navigateToModule(String route) {
     if (_comingSoonRoutes.contains(route)) {
@@ -741,13 +764,17 @@ class _HomeScreenMState extends State<HomeScreenM> {
                 } else {
                   // ❌ API denied — show denied on NFC screen
                   Utilities.AUTHfailed = true;
-                  nfcKey.currentState?.showApiDenied('Access Denied – Unauthorized Card');
+                  nfcKey.currentState?.showApiDenied(
+                    'Access Denied – Unauthorized Card',
+                  );
                 }
               } catch (e) {
                 // ❌ Error — show denied on NFC screen
                 Utilities.AUTHfailed = true;
                 print("FireFetch error: $e");
-                nfcKey.currentState?.showApiDenied('Something went wrong. Please try again.');
+                nfcKey.currentState?.showApiDenied(
+                  'Something went wrong. Please try again.',
+                );
               }
             },
           ),
@@ -763,13 +790,13 @@ class _HomeScreenMState extends State<HomeScreenM> {
       'stp_automation': 'stp_automation',
       'parking_slots': 'parking_slots',
       'guard_touring': 'touring',
-      'safety_check': 'safety'
+      'safety_check': 'safety',
     };
 
     final namedRoute = routeMap[route];
 
     if (namedRoute != null) {
-      context.goNamed(namedRoute);
+      context.pushNamed(namedRoute);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -809,7 +836,6 @@ class _HomeScreenMState extends State<HomeScreenM> {
       ),
     );
   }
-
 }
 
 class BMSModuleItem {

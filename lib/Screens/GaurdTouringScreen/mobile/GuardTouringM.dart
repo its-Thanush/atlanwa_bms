@@ -468,7 +468,7 @@ class _GuardTouringMState extends State<GuardTouringM>
       leading: IconButton(
         onPressed: () {
           _stopNFCSession();
-          context.go('/home');
+          Navigator.pop(context);
         },
         icon: Icon(Icons.arrow_back, color: white),
       ),

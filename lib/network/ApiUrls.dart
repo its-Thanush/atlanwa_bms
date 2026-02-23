@@ -1,4 +1,3 @@
-import 'package:atlanwa_bms/allImports.dart';
 
 class ApiUrls {
 

@@ -19,3 +19,6 @@ class OperatingLogError extends OperatingLogState {
   OperatingLogError({required this.message});
 }
 
+class OpSubmitSuccessState extends OperatingLogState{}
+
+class OpSubmitFailedState extends OperatingLogState{}

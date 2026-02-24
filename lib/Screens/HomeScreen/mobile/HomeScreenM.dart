@@ -24,7 +24,7 @@ class _HomeScreenMState extends State<HomeScreenM> {
   DateTime? _lastBackPressed;
 
   final Set<String> _comingSoonRoutes = {
-    'operating_log',
+    // 'operating_log',
     'stp_automation',
     'parking_slots',
   };

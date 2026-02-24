@@ -14,10 +14,7 @@ class OperatingLogM extends StatefulWidget {
 }
 
 class _OperatingLogMState extends State<OperatingLogM> {
-
-
   late OperatingLogBloc bloc;
-  TextEditingController workDescriptionController = TextEditingController();
 
   @override
   void initState() {
@@ -28,84 +25,75 @@ class _OperatingLogMState extends State<OperatingLogM> {
 
   @override
   Widget build(BuildContext context) {
-
     return BlocListener<OperatingLogBloc, OperatingLogState>(
-  listener: (context, state) async {
-    final prefs = await SharedPreferences.getInstance();
+      listener: (context, state) async {
+        final prefs = await SharedPreferences.getInstance();
 
-     Utilities.userName = prefs.getString('userName') ?? '';
-    Utilities.buildings = prefs.getStringList('buildings') ?? [];
-    // TODO: implement listener
-  },
-  child: BlocBuilder<OperatingLogBloc, OperatingLogState>(
-      builder: (context, state) {
-        return Scaffold(
-          backgroundColor: appBackground,
-          appBar: AppBar(
-            backgroundColor: operatingLogPrimary,
-            elevation: 0,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new, color: white, size: 20),
-              onPressed: () {
-                context.go('/home');
-              },
-            ),
-            title: CustomText(
-              text: 'Operating Log',
-              color: white,
-              size: SizeConfig.titleText,
-              weight: FontWeight.w700,
-            ),
-            actions: [
-              GestureDetector(
-                onTap: (){
-                  _showAddLogBottomSheet(context);
+        Utilities.userName = prefs.getString('userName') ?? '';
+        Utilities.buildings = prefs.getStringList('buildings') ?? [];
+        // TODO: implement listener
+      },
+      child: BlocBuilder<OperatingLogBloc, OperatingLogState>(
+        builder: (context, state) {
+          return Scaffold(
+            backgroundColor: appBackground,
+            appBar: AppBar(
+              backgroundColor: operatingLogPrimary,
+              elevation: 0,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios_new, color: white, size: 20),
+                onPressed: () {
+                  context.go('/home');
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 7, horizontal: 10),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add, color: operatingLogPrimary, size: 18),
-                      SizedBox(width: 5),
-                      CustomText(
-                        text: "Add Log",
-                        color: operatingLogPrimary,
-                        size: SizeConfig.medtitleText,
-                        weight: FontWeight.w600,
-                      ),
-                    ],
-                  ),
-                ),
               ),
-              Gap(10),
-            ],
-          ),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-            child: Column(
-              children: [
-                Expanded(
-                  child: _buildLogsList(state),
+              title: CustomText(
+                text: 'Operating Log',
+                color: white,
+                size: SizeConfig.titleText,
+                weight: FontWeight.w700,
+              ),
+              actions: [
+                GestureDetector(
+                  onTap: () {
+                    _showAddLogBottomSheet(context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 7, horizontal: 10),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add, color: operatingLogPrimary, size: 18),
+                        SizedBox(width: 5),
+                        CustomText(
+                          text: "Add Log",
+                          color: operatingLogPrimary,
+                          size: SizeConfig.medtitleText,
+                          weight: FontWeight.w600,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+                Gap(10),
               ],
             ),
-          ),
-        );
-      },
-    ),
-);
+            body: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Column(children: [Expanded(child: _buildLogsList(state))]),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildLogsList(OperatingLogState state) {
     if (state is OperatingLogLoading) {
-      return Center(
-        child: CircularProgressIndicator(color: pro_primaryColor),
-      );
+      return Center(child: CircularProgressIndicator(color: pro_primaryColor));
     } else if (state is OperatingLogLoaded) {
       if (state.logs.isEmpty) {
         return Center(
@@ -150,7 +138,9 @@ class _OperatingLogMState extends State<OperatingLogM> {
   }
 
   Widget _buildLogCard(OperationallogsModel log) {
-    Color statusColor = log.status?.toLowerCase() == 'open' ? statusActive : statusInactive;
+    Color statusColor = log.status?.toLowerCase() == 'open'
+        ? statusActive
+        : statusInactive;
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
@@ -183,7 +173,10 @@ class _OperatingLogMState extends State<OperatingLogM> {
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: operatingLogPrimary,
                         borderRadius: BorderRadius.circular(5),
@@ -197,7 +190,10 @@ class _OperatingLogMState extends State<OperatingLogM> {
                     ),
                     SizedBox(width: 10),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: statusColor,
                         borderRadius: BorderRadius.circular(5),
@@ -284,7 +280,11 @@ class _OperatingLogMState extends State<OperatingLogM> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.description, size: 16, color: operatingLogPrimary),
+                    Icon(
+                      Icons.description,
+                      size: 16,
+                      color: operatingLogPrimary,
+                    ),
                     SizedBox(width: 6),
                     Expanded(
                       child: Column(
@@ -337,11 +337,14 @@ class _OperatingLogMState extends State<OperatingLogM> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        // View details
-                        DeleteEditDetails(log);
+                        // Edit log
+                        _showAddLogBottomSheet(context, log: log);
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: pro_primaryColorTooLit,
                           borderRadius: BorderRadius.circular(5),
@@ -367,15 +370,22 @@ class _OperatingLogMState extends State<OperatingLogM> {
                         DeleteLogDetails(log);
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color:  Colors.red.shade100,
+                          color: Colors.red.shade100,
                           borderRadius: BorderRadius.circular(5),
                           border: Border.all(color: Colors.red.shade400),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 14, color: Colors.red.shade400),
+                            Icon(
+                              Icons.delete,
+                              size: 14,
+                              color: Colors.red.shade400,
+                            ),
                             SizedBox(width: 4),
                             CustomText(
                               text: 'Delete',
@@ -393,7 +403,10 @@ class _OperatingLogMState extends State<OperatingLogM> {
                         _showLogDetails(log);
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: operatingLogLight,
                           borderRadius: BorderRadius.circular(5),
@@ -401,7 +414,11 @@ class _OperatingLogMState extends State<OperatingLogM> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.visibility, size: 14, color: operatingLogPrimary),
+                            Icon(
+                              Icons.visibility,
+                              size: 14,
+                              color: operatingLogPrimary,
+                            ),
                             SizedBox(width: 4),
                             CustomText(
                               text: 'View',
@@ -482,24 +499,25 @@ class _OperatingLogMState extends State<OperatingLogM> {
                 _detailRow('Last Updated At', log.lastUpdatedAt!),
               Center(
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(7),
                     color: Colors.red.shade400,
-                    border: Border.all(color: Colors.red)
+                    border: Border.all(color: Colors.red),
                   ),
-                  child: CustomText(text: "Delete",color: white,size:SizeConfig.subText,weight: FontWeight.w500,),
+                  child: CustomText(
+                    text: "Delete",
+                    color: white,
+                    size: SizeConfig.subText,
+                    weight: FontWeight.w500,
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  void DeleteEditDetails(OperationallogsModel log) {
-
   }
 
   Widget _detailRow(String label, String value) {
@@ -526,58 +544,202 @@ class _OperatingLogMState extends State<OperatingLogM> {
     );
   }
 
-  void _showAddLogBottomSheet(BuildContext context) {
+  void _showAddLogBottomSheet(
+    BuildContext context, {
+    OperationallogsModel? log,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildLogForm(context),
+      builder: (sheetContext) => BlocProvider.value(
+        value: bloc,
+        child: _LogFormSheet(bloc: bloc, log: log),
+      ),
+    );
+  }
+}
+
+class _LogFormSheet extends StatefulWidget {
+  final OperatingLogBloc bloc;
+  final OperationallogsModel? log;
+
+  const _LogFormSheet({required this.bloc, this.log});
+
+  @override
+  State<_LogFormSheet> createState() => _LogFormSheetState();
+}
+
+class _LogFormSheetState extends State<_LogFormSheet> {
+  late bool isEditMode;
+  late bool isBuildingLocked;
+  late TextEditingController buildingController;
+  late TextEditingController natureOfCallController;
+  String? selectedBuilding;
+  String? selectedNatureOfCall;
+  String selectedStatus = 'open';
+
+  final List<String> natureOfCallOptions = [
+    'Client call - oral',
+    'Client call - mail/portal',
+    'Non routine activity',
+    'Routine activity',
+    'AMC call',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    isEditMode = widget.log != null;
+
+    buildingController = TextEditingController(
+      text: widget.log?.building ?? '',
+    );
+    natureOfCallController = TextEditingController(
+      text: widget.log?.natureOfCall ?? '',
+    );
+
+    if (isEditMode) {
+      isBuildingLocked = true;
+      selectedBuilding = widget.log!.building;
+      selectedNatureOfCall = widget.log!.natureOfCall;
+      selectedStatus = widget.log!.status ?? 'open';
+      widget.bloc.workDescriptionController.text =
+          widget.log!.workDescription ?? '';
+    } else {
+      // Check if selectedBuilding matches one in buildings list
+      final match = Utilities.buildings.contains(Utilities.selectedBuilding);
+      if (match && Utilities.selectedBuilding.isNotEmpty) {
+        isBuildingLocked = true;
+        selectedBuilding = Utilities.selectedBuilding;
+        buildingController.text = Utilities.selectedBuilding;
+      } else {
+        isBuildingLocked = false;
+        selectedBuilding = null;
+      }
+      selectedNatureOfCall = null;
+      selectedStatus = 'open';
+      widget.bloc.workDescriptionController.text = '';
+    }
+  }
+
+  @override
+  void dispose() {
+    buildingController.dispose();
+    natureOfCallController.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _fieldDecoration(
+    String hint, {
+    IconData? prefixIcon,
+    bool enabled = true,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(
+        color: Colors.grey.shade400,
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+      ),
+      prefixIcon: prefixIcon != null
+          ? Icon(
+              prefixIcon,
+              color: enabled ? operatingLogPrimary : Colors.grey.shade400,
+              size: 20,
+            )
+          : null,
+      filled: true,
+      fillColor: enabled ? Colors.white : Colors.grey.shade100,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: borderColor),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: borderColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: operatingLogPrimary, width: 1.5),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
     );
   }
 
-  Widget _buildLogForm(BuildContext context, {OperationallogsModel? log}) {
-    final TextEditingController buildingController =
-    TextEditingController(text: log?.building ?? '');
+  Widget _sectionLabel(String text, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: operatingLogPrimary),
+          const SizedBox(width: 6),
+          CustomText(
+            text: text,
+            size: SizeConfig.smallSubText,
+            weight: FontWeight.w600,
+            color: TextColourBlk,
+          ),
+        ],
+      ),
+    );
+  }
 
-    final TextEditingController natureOfCallController =
-    TextEditingController(text: log?.natureOfCall ?? '');
-
-
-    final TextEditingController statusController =
-    TextEditingController(text: log?.status ?? 'open');
-
-    InputDecoration fieldDecoration(String hint) {
-      return InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: Colors.grey.shade50,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: borderColor),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: borderColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: pro_primaryColor, width: 1.2),
-        ),
-      );
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'open':
+        return statusActive;
+      case 'closed':
+        return statusError;
+      case 'in-progress':
+        return statusWarning;
+      default:
+        return statusInactive;
     }
+  }
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<OperatingLogBloc, OperatingLogState>(
+      listener: (context, state) {
+        if (state is OpSubmitSuccessState) {
+          Navigator.pop(context);
+          widget.bloc.add(FetchOperatingLogEvent());
+        } else if (state is OpSubmitFailedState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isEditMode ? 'Failed to update log' : 'Failed to create log',
+              ),
+              backgroundColor: statusError,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,154 +747,487 @@ class _OperatingLogMState extends State<OperatingLogM> {
               /// Drag handle
               Center(
                 child: Container(
-                  height: 5,
-                  width: 45,
+                  margin: const EdgeInsets.only(top: 12),
+                  height: 4,
+                  width: 40,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
-              const SizedBox(height: 18),
 
-              /// Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CustomText(
-                    text: "Create Log",
-                    size: SizeConfig.titleText,
-                    weight: FontWeight.w700,
-                    color: pro_primaryColor,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  )
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              /// Building
-              CustomText(
-                text: "Building",
-                size: SizeConfig.smallSubText,
-                weight: FontWeight.w600,
-              ),
-              const SizedBox(height: 6),
-              DropdownButtonFormField<String>(
-                value:
-                buildingController.text.isEmpty ? null : buildingController.text,
-                decoration: fieldDecoration("Select building"),
-                items: Utilities.buildings
-                    .map((b) => DropdownMenuItem(value: b, child: CustomText(text: b.toUpperCase(), size: SizeConfig.subText,weight: FontWeight.bold,),))
-                    .toList(),
-                onChanged: (v) => buildingController.text = v ?? '',
-              ),
-
-              const SizedBox(height: 18),
-
-              CustomText(
-                text: "Nature of Call",
-                size: SizeConfig.smallSubText,
-                weight: FontWeight.w600,
-              ),
-              const SizedBox(height: 6),
-              DropdownButtonFormField<String>(
-                value: natureOfCallController.text.isEmpty
-                    ? null
-                    : natureOfCallController.text,
-                decoration: fieldDecoration("Select nature of call"),
-                items: [
-                  'Client call - oral',
-                  'Client call - mail/portal',
-                  'Non routine activity',
-                  'Routine activity',
-                  'AMC call'
-                ]
-                    .map((n) => DropdownMenuItem(value: n, child: CustomText(text: n, size: SizeConfig.subText,weight: FontWeight.bold,),))
-                    .toList(),
-                onChanged: (v) => natureOfCallController.text = v ?? '',
-              ),
-
-              const SizedBox(height: 18),
-
-              /// Work Description
-              CustomText(
-                text: "Work Description",
-                size: SizeConfig.smallSubText,
-                weight: FontWeight.w600,
-              ),
-              const SizedBox(height: 6),
-              TextField(
-                controller: workDescriptionController,
-                maxLines: 4,
-                decoration: fieldDecoration("Enter description"),
-              ),
-
-              const SizedBox(height: 18),
-
-              /// Status
-              CustomText(
-                text: "Status",
-                size: SizeConfig.smallSubText,
-                weight: FontWeight.w600,
-              ),
-              const SizedBox(height: 6),
-              DropdownButtonFormField<String>(
-                value: statusController.text,
-                decoration: fieldDecoration("Select status"),
-                items: ['open', 'closed', 'in-progress']
-                    .map((s) => DropdownMenuItem(
-                  value: s,
-                  child: CustomText(text: s.toUpperCase(), size: SizeConfig.subText,weight: FontWeight.bold,),
-                ))
-                    .toList(),
-                onChanged: (v) => statusController.text = v ?? 'open',
-              ),
-
-              const SizedBox(height: 26),
-
-              /// Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child:  CustomText(text: "Cancel",color: SecondaryColor,),
+              /// Header with accent bar
+              Container(
+                margin: const EdgeInsets.fromLTRB(0, 16, 0, 0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: operatingLogLight,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: operatingLogPrimary.withOpacity(0.15),
+                      width: 1,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: SecondaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: operatingLogPrimary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        isEditMode
+                            ? Icons.edit_note_rounded
+                            : Icons.add_task_rounded,
+                        color: white,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            text: isEditMode ? "Edit Log" : "New Log Entry",
+                            size: SizeConfig.titleText,
+                            weight: FontWeight.w700,
+                            color: operatingLogPrimary,
+                          ),
+                          const SizedBox(height: 2),
+                          CustomText(
+                            text: isEditMode
+                                ? "Update work description or status"
+                                : "Fill in the details to create a log",
+                            size: SizeConfig.miniText,
+                            color: TextColourAsh,
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: TextColourAsh,
                         ),
                       ),
-                      onPressed: () {
-                        bloc.add(CreateOpLogEvent());
-                      },
-                      child: CustomText(text: "Create Log",color: white,),
                     ),
-                  ),
-                ],
-              )
+                  ],
+                ),
+              ),
+
+              /// Form body
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// Building
+                    _sectionLabel("Building", Icons.business_rounded),
+                    isBuildingLocked
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: operatingLogLight,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: operatingLogPrimary.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CustomText(
+                                    text: (selectedBuilding ?? '')
+                                        .toUpperCase(),
+                                    size: SizeConfig.subText,
+                                    weight: FontWeight.w600,
+                                    color: TextColourBlk,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: operatingLogPrimary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.lock,
+                                        size: 12,
+                                        color: operatingLogPrimary,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      CustomText(
+                                        text: "Locked",
+                                        size: SizeConfig.miniText,
+                                        weight: FontWeight.w500,
+                                        color: operatingLogPrimary,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : DropdownButtonFormField<String>(
+                            value: selectedBuilding,
+                            decoration: _fieldDecoration(
+                              "Select building",
+                              prefixIcon: Icons.business_rounded,
+                            ),
+                            icon: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: operatingLogPrimary,
+                            ),
+                            dropdownColor: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            items: Utilities.buildings
+                                .map(
+                                  (b) => DropdownMenuItem(
+                                    value: b,
+                                    child: CustomText(
+                                      text: b.toUpperCase(),
+                                      size: SizeConfig.subText,
+                                      weight: FontWeight.w500,
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) {
+                              setState(() {
+                                selectedBuilding = v;
+                              });
+                            },
+                          ),
+
+                    const SizedBox(height: 20),
+
+                    /// Nature of Call
+                    _sectionLabel("Nature of Call", Icons.category_rounded),
+                    isEditMode
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: operatingLogLight,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: operatingLogPrimary.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CustomText(
+                                    text: widget.log?.natureOfCall ?? 'N/A',
+                                    size: SizeConfig.subText,
+                                    weight: FontWeight.w500,
+                                    color: TextColourBlk,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: operatingLogPrimary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.lock,
+                                        size: 12,
+                                        color: operatingLogPrimary,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      CustomText(
+                                        text: "Locked",
+                                        size: SizeConfig.miniText,
+                                        weight: FontWeight.w500,
+                                        color: operatingLogPrimary,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : DropdownButtonFormField<String>(
+                            value: selectedNatureOfCall,
+                            decoration: _fieldDecoration(
+                              "Select nature of call",
+                            ),
+                            icon: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: operatingLogPrimary,
+                            ),
+                            dropdownColor: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            items: natureOfCallOptions
+                                .map(
+                                  (n) => DropdownMenuItem(
+                                    value: n,
+                                    child: CustomText(
+                                      text: n,
+                                      size: SizeConfig.subText,
+                                      weight: FontWeight.w500,
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) {
+                              setState(() {
+                                selectedNatureOfCall = v;
+                              });
+                            },
+                          ),
+
+                    const SizedBox(height: 20),
+
+                    /// Work Description
+                    _sectionLabel(
+                      "Work Description",
+                      Icons.description_rounded,
+                    ),
+                    TextField(
+                      controller: widget.bloc.workDescriptionController,
+                      maxLines: 4,
+                      style: TextStyle(fontSize: 14, color: TextColourBlk),
+                      decoration: _fieldDecoration(
+                        "Describe the work performed...",
+                        prefixIcon: null,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    /// Status
+                    _sectionLabel("Status", Icons.flag_rounded),
+                    isEditMode
+                        ? DropdownButtonFormField<String>(
+                            value: selectedStatus,
+                            decoration: _fieldDecoration(
+                              "Select status",
+                            ),
+                            dropdownColor: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            items: ['open', 'closed', 'in-progress']
+                                .map(
+                                  (s) => DropdownMenuItem(
+                                    value: s,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color: _statusColor(s),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        CustomText(
+                                          text: s.toUpperCase(),
+                                          size: SizeConfig.subText,
+                                          weight: FontWeight.w600,
+                                          color: _statusColor(s),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) {
+                              setState(() {
+                                selectedStatus = v ?? 'open';
+                              });
+                            },
+                          )
+                        : Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusActive.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: statusActive.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: statusActive,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: CustomText(
+                                    text: "OPEN",
+                                    size: SizeConfig.subText,
+                                    weight: FontWeight.w600,
+                                    color: statusActive,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: statusActive.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: CustomText(
+                                    text: "Default",
+                                    size: SizeConfig.miniText,
+                                    weight: FontWeight.w500,
+                                    color: statusActive,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                    const SizedBox(height: 28),
+
+                    /// Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade300),
+                                color: Colors.grey.shade50,
+                              ),
+                              child: Center(
+                                child: CustomText(
+                                  text: "Cancel",
+                                  size: SizeConfig.subText,
+                                  weight: FontWeight.w600,
+                                  color: TextColourAsh,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          flex: 2,
+                          child: GestureDetector(
+                            onTap: () {
+                              if (isEditMode) {
+                                widget.bloc.add(
+                                  EditOpLogEvent(
+                                    logId: widget.log!.id!,
+                                    building: widget.log!.building ?? '',
+                                    natureOfCall:
+                                        widget.log!.natureOfCall ?? '',
+                                    workDescription: widget
+                                        .bloc
+                                        .workDescriptionController
+                                        .text,
+                                    status: selectedStatus,
+                                  ),
+                                );
+                              } else {
+                                widget.bloc.add(
+                                  CreateOpLogEvent(
+                                    natureOfCall: selectedNatureOfCall ?? '',
+                                  ),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    operatingLogPrimary,
+                                    const Color(0xFF2A9D5C),
+                                  ],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: operatingLogPrimary.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    isEditMode
+                                        ? Icons.save_rounded
+                                        : Icons.add_circle_outline_rounded,
+                                    color: white,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  CustomText(
+                                    text: isEditMode
+                                        ? "Update Log"
+                                        : "Create Log",
+                                    size: SizeConfig.subText,
+                                    weight: FontWeight.w700,
+                                    color: white,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
-
 }

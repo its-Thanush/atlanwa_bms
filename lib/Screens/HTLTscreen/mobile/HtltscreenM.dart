@@ -39,7 +39,7 @@ class _HtltscreenMState extends State<HtltscreenM> with TickerProviderStateMixin
   void _loadSampleData() {
     sampleData = {
       "id": 3853,
-      "building": "PRESTIGE POLYGON",
+      "building": Utilities.selectedBuilding,
       "date": "2026-02-14",
       "time": "12:00",
       "panelType": "BOTH",
